@@ -21,10 +21,12 @@ class Record:
 
     def verify(self, certificates):
         self._require_signed()
-        self._verify(self._record, certificates)
+        # Recursively verify record
+        self._verify_record_container(self._record, certificates)
+        self._verified = True
 
-    def _verify(self, level, certificates):
-        serial, *data, signature = level
+    def _verify_record_container(self, container, certificates):
+        serial, *data, signature = container
         # Serial number must only be a number
         if str(int(serial)) != serial:
             raise Exception("Bad certificate serial number in record: "+serial)
@@ -33,8 +35,7 @@ class Record:
         # Recurse into signed data
         for e in data:
             if not isinstance(e, str):
-                self._verify(e, certificates)
-        self._verified = True
+                self._verify_record_container(e, certificates)
 
     def add_record(self, record):
         self._signed = False
