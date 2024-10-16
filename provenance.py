@@ -24,3 +24,5 @@ if __name__ == "__main__":
     record3 = record2.sign(signer2)
     record3.verify(certificates)
     print(json.dumps(record3.encoded(), indent=2).encode("utf-8").decode('utf-8'))
+
+    print(json.dumps(record3.decoded(), indent=2).encode("utf-8").decode('utf-8'))

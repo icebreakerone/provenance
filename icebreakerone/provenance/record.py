@@ -80,6 +80,21 @@ class Record:
         self._require_signed()
         return self._record
 
+    def decoded(self): # TODO name
+        self._require_signed()
+        steps = []
+        self._decoded_gather_steps(self._record, steps)
+        return steps
+
+    def _decoded_gather_steps(self, container, steps):
+        serial, *data, signature = container
+        for s in data:
+            if isinstance(s, str):
+                decoded_step = json.loads(base64.urlsafe_b64decode(s))
+                steps.append(decoded_step)
+            else:
+                self._decoded_gather_steps(s, steps)
+
     def _require_signed(self):
         if not self._signed:
             raise Exception("Record is not signed, call sign() and use returned object")
