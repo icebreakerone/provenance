@@ -86,7 +86,7 @@ class Record:
         return self._record
 
     def decoded(self): # TODO name
-        self._require_signed()
+        self._require_verified()
         steps = []
         self._decoded_gather_steps(self._record, steps)
         return steps
@@ -103,6 +103,10 @@ class Record:
     def _require_signed(self):
         if not self._signed:
             raise Exception("Record is not signed, call sign() and use returned object")
+
+    def _require_verified(self):
+        if not (self._signed and self._verified):
+            raise Exception("Record is not verified, call verify() first")
 
     def _timestamp_now_iso8601(self):
         return (datetime.datetime.now(datetime.UTC).
