@@ -1,6 +1,7 @@
 import base64
 import json
 import copy
+import datetime
 
 
 class Record:
@@ -42,9 +43,13 @@ class Record:
         self._verified = False
         self._additional_records.append(record)
 
-    def add_step(self, step):
+    def add_step(self, step_in):
         self._signed = False
         self._verified = False
+        step = copy.deepcopy(step_in)
+        if not "timestamp" in step:
+            step["timestamp"] = self._timestamp_now_iso8601()
+            # TODO: Verify timestamp is in the right format (and maybe signing cert is valid at that time?)
         self._additional_steps.append(step)
 
     def sign(self, signer):
@@ -98,3 +103,10 @@ class Record:
     def _require_signed(self):
         if not self._signed:
             raise Exception("Record is not signed, call sign() and use returned object")
+
+    def _timestamp_now_iso8601(self):
+        return (datetime.datetime.now(datetime.UTC).
+            replace(microsecond=0).
+            isoformat().
+            replace("+00:00", "Z")
+        )

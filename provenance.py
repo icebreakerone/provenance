@@ -13,7 +13,7 @@ if __name__ == "__main__":
     certificates = CertificatesLocal("certs")
 
     record = Record()
-    record.add_step({"abc":1})
+    record.add_step({"timestamp":"2024-09-16T15:32:56Z", "abc":1})
     record.add_step({"hello":2})
     record2 = record.sign(signer1)
     # print(record2.encoded())
