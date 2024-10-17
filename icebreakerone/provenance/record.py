@@ -35,7 +35,8 @@ class Record:
         if str(int(serial)) != serial:
             raise Exception("Bad certificate serial number in record: "+serial)
         # Check signatures at this level and get signer information
-        signer_info = certificates._verify(serial, sign_timestamp, self._data_for_signing(data).encode("utf-8"), base64.urlsafe_b64decode(signature))
+        data_for_signing = self._data_for_signing(data, [serial, sign_timestamp])
+        signer_info = certificates._verify(serial, sign_timestamp, data_for_signing.encode("utf-8"), base64.urlsafe_b64decode(signature))
         # Recurse into signed data, collecting decoded steps and adding signer info
         for e in data:
             if not isinstance(e, str):
@@ -76,10 +77,13 @@ class Record:
             output.append(r) # signed and encoded
         for s in self._additional_steps:
             output.append(self._encode_step(s)) # unencoded, not signed
-        serial, signature = signer._sign(self._data_for_signing(output).encode("utf-8"))
+        serial = signer._serial()
+        sign_timestamp = self._timestamp_now_iso8601()
+        data_for_signing = self._data_for_signing(output, [serial, sign_timestamp])
+        signature = signer._sign(data_for_signing.encode("utf-8"))
         output.append([
             serial,
-            self._timestamp_now_iso8601(),
+            sign_timestamp,
             base64.urlsafe_b64encode(signature).decode('utf-8')
         ])
         return Record(copy.deepcopy(output))
@@ -87,7 +91,7 @@ class Record:
     def _encode_step(self, step):
         return base64.urlsafe_b64encode(json.dumps(step, separators=(",", ":")).encode("utf-8")).decode('utf-8')
 
-    def _data_for_signing(self, data):
+    def _data_for_signing(self, data, additional=None):
         gather = []
         for e in data:
             if isinstance(e, str):
@@ -96,6 +100,8 @@ class Record:
                 gather.append("%")
                 gather.append(self._data_for_signing(e))
                 gather.append("&")
+        if additional is not None:
+            gather.extend(additional)
         return ".".join(gather)
 
     def encoded(self): # TODO name
