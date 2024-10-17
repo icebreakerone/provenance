@@ -18,39 +18,52 @@ class Record:
         self._additional_records = []
         self._additional_steps = []
         self._signed = True
-        self._verified = False
+        self._verified = None
 
     def verify(self, certificates):
         self._require_signed()
         # Recursively verify record
-        self._verify_record_container(self._record, certificates)
-        self._verified = True
+        steps = []
+        signer_stack = []
+        self._verify_record_container(self._record, certificates, steps, signer_stack)
+        self._verified = steps
 
-    def _verify_record_container(self, container, certificates):
+    def _verify_record_container(self, container, certificates, steps, signer_stack):
         *data, sig_block = container
         serial, sign_timestamp, signature = sig_block
         # Serial number must only be a number
         if str(int(serial)) != serial:
             raise Exception("Bad certificate serial number in record: "+serial)
-        # Check signatures at this level
-        certificates._verify(serial, sign_timestamp, self._data_for_signing(data).encode("utf-8"), base64.urlsafe_b64decode(signature))
-        # Recurse into signed data
+        # Check signatures at this level and get signer information
+        signer_info = certificates._verify(serial, sign_timestamp, self._data_for_signing(data).encode("utf-8"), base64.urlsafe_b64decode(signature))
+        # Recurse into signed data, collecting decoded steps and adding signer info
         for e in data:
             if not isinstance(e, str):
-                self._verify_record_container(e, certificates)
+                signer_stack.append(signer_info)
+                self._verify_record_container(e, certificates, steps, signer_stack)
+                del signer_stack[-1]
+            else:
+                decoded_step = json.loads(base64.urlsafe_b64decode(e))
+                decoded_step[".signature"] = {
+                    "signed": signer_info,
+                    "includedBy": copy.copy(signer_stack)
+                }
+                steps.append(decoded_step)
 
     def add_record(self, record):
         self._signed = False
-        self._verified = False
+        self._verified = None
         self._additional_records.append(record)
 
     def add_step(self, step_in):
         self._signed = False
-        self._verified = False
+        self._verified = None
         step = copy.deepcopy(step_in)
         if not "timestamp" in step:
             step["timestamp"] = self._timestamp_now_iso8601()
             # TODO: Verify timestamp is in the right format (and maybe signing cert is valid at that time?)
+        if ".signature" in step:
+            raise Exception("Step may not contain .signature key")
         self._additional_steps.append(step)
 
     def sign(self, signer):
@@ -91,26 +104,14 @@ class Record:
 
     def decoded(self): # TODO name
         self._require_verified()
-        steps = []
-        self._decoded_gather_steps(self._record, steps)
-        return steps
-
-    def _decoded_gather_steps(self, container, steps):
-        *data, sig_block = container
-        serial, sign_timestamp, signature = sig_block
-        for s in data:
-            if isinstance(s, str):
-                decoded_step = json.loads(base64.urlsafe_b64decode(s))
-                steps.append(decoded_step)
-            else:
-                self._decoded_gather_steps(s, steps)
+        return copy.deepcopy(self._verified)
 
     def _require_signed(self):
         if not self._signed:
             raise Exception("Record is not signed, call sign() and use returned object")
 
     def _require_verified(self):
-        if not (self._signed and self._verified):
+        if not (self._signed and (self._verified != None)):
             raise Exception("Record is not verified, call verify() first")
 
     def _timestamp_now_iso8601(self):
