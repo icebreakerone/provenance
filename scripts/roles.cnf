@@ -6,7 +6,7 @@ subjectAltName = URI:https://directory.estf.ib1.org/member/2876152
 
 [role_values1]
 value.1=UTF8:https://registry.estf.ib1.org/scheme/electricty/role/supply-voltage-reader
-value.2=UTF8:https://registry.estf.ib1.org/scheme/electricty/group/reporter
+value.2=UTF8:https://registry.estf.ib1.org/scheme/electricty/role/reporter
 
 # ---------------------------------------------------------------------------
 
@@ -17,4 +17,4 @@ subjectAltName = URI:https://directory.estf.ib1.org/member/81524
 
 [role_values2]
 value.1=UTF8:https://registry.estf.ib1.org/scheme/electricty/role/consumption-reader
-value.2=UTF8:https://registry.estf.ib1.org/scheme/electricty/group/reporter
+value.2=UTF8:https://registry.estf.ib1.org/scheme/electricty/role/reporter
