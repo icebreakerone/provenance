@@ -27,12 +27,13 @@ class Record:
         self._verified = True
 
     def _verify_record_container(self, container, certificates):
-        serial, *data, signature = container
+        *data, sig_block = container
+        serial, sign_timestamp, signature = sig_block
         # Serial number must only be a number
         if str(int(serial)) != serial:
             raise Exception("Bad certificate serial number in record: "+serial)
         # Check signatures at this level
-        certificates._verify(serial, self._data_for_signing(data).encode("utf-8"), base64.urlsafe_b64decode(signature))
+        certificates._verify(serial, sign_timestamp, self._data_for_signing(data).encode("utf-8"), base64.urlsafe_b64decode(signature))
         # Recurse into signed data
         for e in data:
             if not isinstance(e, str):
@@ -63,8 +64,11 @@ class Record:
         for s in self._additional_steps:
             output.append(self._encode_step(s)) # unencoded, not signed
         serial, signature = signer._sign(self._data_for_signing(output).encode("utf-8"))
-        output.insert(0, serial)
-        output.append(base64.urlsafe_b64encode(signature).decode('utf-8'))
+        output.append([
+            serial,
+            self._timestamp_now_iso8601(),
+            base64.urlsafe_b64encode(signature).decode('utf-8')
+        ])
         return Record(copy.deepcopy(output))
 
     def _encode_step(self, step):
@@ -92,7 +96,8 @@ class Record:
         return steps
 
     def _decoded_gather_steps(self, container, steps):
-        serial, *data, signature = container
+        *data, sig_block = container
+        serial, sign_timestamp, signature = sig_block
         for s in data:
             if isinstance(s, str):
                 decoded_step = json.loads(base64.urlsafe_b64decode(s))

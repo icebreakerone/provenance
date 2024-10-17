@@ -10,7 +10,7 @@ if __name__ == "__main__":
     signer1 = SignerLocal("certs/123456-bundle.pem", "certs/6-application-one-key.pem")
     signer2 = SignerLocal("certs/98765-bundle.pem", "certs/7-application-two-key.pem")
     # signer2 = SignerLocal("certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
-    certificates = CertificatesLocal("certs")
+    certificates = CertificatesLocal("certs", "certs/4-signing-ca-cert.pem")
 
     record = Record()
     record.add_step({"timestamp":"2024-09-16T15:32:56Z", "abc":1})
