@@ -44,6 +44,17 @@ if __name__ == "__main__":
         "from": "https://directory.estf.ib1.org/member/237346",
         "of": "URd0wgs"
     })
+    # Add steps from another record
+    record_for_adding = Record()
+    record_for_adding.add_step({
+        "id": "Hsdu28",
+        "type": "transfer",
+        "from": "https://directory.estf.ib1.org/member/3456643",
+        "source": {
+            "endpoint": "https://e1.example.org/emission",
+        }
+    })
+    record.add_record(record_for_adding.sign(signer2))
     # Then sign it, returning a new Record object
     record2 = record.sign(signer1)
     # print(record2.encoded())

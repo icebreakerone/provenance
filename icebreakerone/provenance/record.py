@@ -14,6 +14,9 @@ class Record:
     #   _verified -- whether the record has had signatures verified
 
     def __init__(self, record=None):
+        if record is not None:
+            if not isinstance(record.get("steps"), list):
+                raise Exception("Not an encoded Provenance record")
         self._record = record
         self._additional_records = []
         self._additional_steps = []
@@ -25,7 +28,7 @@ class Record:
         # Recursively verify record
         steps = []
         signer_stack = []
-        self._verify_record_container(self._record, certificates, steps, signer_stack)
+        self._verify_record_container(self._record["steps"], certificates, steps, signer_stack)
         self._verified = steps
 
     def _verify_record_container(self, container, certificates, steps, signer_stack):
@@ -54,7 +57,9 @@ class Record:
     def add_record(self, record):
         self._signed = False
         self._verified = None
-        self._additional_records.append(record)
+        if not isinstance(record, Record):
+            raise Exception("Not a Record object")
+        self._additional_records.append(record.encoded())
 
     def add_step(self, step_in):
         self._signed = False
@@ -70,11 +75,9 @@ class Record:
     def sign(self, signer):
         output = []
         if self._record is not None:
-            output.append(self._record) # signed and encoded
+            output.append(self._record["steps"]) # signed and encoded
         for r in self._additional_records:
-            if isinstance(r, Record):
-                r = r.encoded()
-            output.append(r) # signed and encoded
+            output.append(r["steps"]) # signed and encoded
         for s in self._additional_steps:
             output.append(self._encode_step(s)) # unencoded, not signed
         serial = signer._serial()
@@ -86,7 +89,8 @@ class Record:
             sign_timestamp,
             base64.urlsafe_b64encode(signature).decode('utf-8')
         ])
-        return Record(copy.deepcopy(output))
+        encoded = {"steps": copy.deepcopy(output)}
+        return Record(encoded)
 
     def _encode_step(self, step):
         return base64.urlsafe_b64encode(json.dumps(step, separators=(",", ":")).encode("utf-8")).decode('utf-8')
