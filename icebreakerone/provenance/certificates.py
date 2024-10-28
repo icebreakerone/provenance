@@ -39,16 +39,16 @@ class SigningCertificate:
 
 # ---------------------------------------------------------------------------
 
-class CertificatesLocal:
-    def __init__(self, directory, root_ca_certificate):
-        self._directory = directory
+class CertificateProviderBase:
+    def __init__(self, root_ca_certificate):
         with open(root_ca_certificate, "rb") as f:
             self._ca_store = Store(x509.load_pem_x509_certificates(f.read()))
 
-    def _verify(self, serial, sign_timestamp, data, signature):
-        certificate_filename = self._directory + '/' + str(int(serial)) + '-bundle.pem'
-        with open(certificate_filename, "rb") as f:
-            certs = x509.load_pem_x509_certificates(f.read())
+    def policy_include_certificates_in_record(self):
+        return False
+
+    def _verify(self, certificates_from_record, serial, sign_timestamp, data, signature):
+        certs = self._certificates_for_serial(certificates_from_record, serial)
         # first certificate in file is signing certificate
         signing_cert, *issuer_chain = certs
         # 1) check certificate chain validity at the time of signature
@@ -68,3 +68,30 @@ class CertificatesLocal:
             "application": cert_info.application(),
             "roles": cert_info.roles()
         }
+
+# ---------------------------------------------------------------------------
+
+class CertificatesProviderLocal(CertificateProviderBase):
+    def __init__(self, root_ca_certificate, directory):
+        CertificateProviderBase.__init__(self, root_ca_certificate)
+        self._directory = directory
+
+    def _certificates_for_serial(self, certificates_from_record, serial):
+        certificate_filename = self._directory + '/' + str(int(serial)) + '-bundle.pem'
+        with open(certificate_filename, "rb") as f:
+            return x509.load_pem_x509_certificates(f.read())
+
+# ---------------------------------------------------------------------------
+
+class CertificatesProviderSelfContainedRecord(CertificateProviderBase):
+    def policy_include_certificates_in_record(self):
+        return True
+
+    def _certificates_for_serial(self, certificates_from_record, serial):
+        certs = certificates_from_record.get(serial)
+        if certs is None:
+            raise Exception("Certificate serial "+serial+" is not present in record")
+        return list(map(
+            lambda c: x509.load_pem_x509_certificate(c.encode("utf-8")),
+            certs
+        ))

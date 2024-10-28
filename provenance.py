@@ -4,21 +4,31 @@ from cryptography import x509
 
 from icebreakerone.provenance import Record
 from icebreakerone.provenance.signing import SignerLocal
-from icebreakerone.provenance.certificates import CertificatesLocal
+from icebreakerone.provenance.certificates import CertificatesProviderSelfContainedRecord, CertificatesProviderLocal
 
-if __name__ == "__main__":
+def create_provenance_records(self_contained):
+    # Create a mechanism to provide certificates for verification. Multiple
+    # implementations: embed certificates in record, entirely local, fetch from
+    # Directory with local caching, etc.
+    # Implements certificate policy, including whether certificates are included
+    # in the record.
+    # Provides the signing CA root certificate. Each environment will have its own
+    # root CA.
+    if self_contained:
+        # Use certificates from the record, with policy to include them when adding steps
+        certificate_provider = CertificatesProviderSelfContainedRecord("certs/4-signing-ca-cert.pem")
+    else:
+        # Use certificates contained in a local directory, don't include certs in record
+        certificate_provider = CertificatesProviderLocal("certs/4-signing-ca-cert.pem", "certs")
+
     # Create two signers representing two applications to illustrate a record
     # passed between two members. (In a real application, you'd only have one.)
     # A few signer classes should be provided, eg local PEM files like this one,
     # or a key stored in AWS' key service.
-    signer1 = SignerLocal("certs/123456-bundle.pem", "certs/6-application-one-key.pem")
-    signer2 = SignerLocal("certs/98765-bundle.pem", "certs/7-application-two-key.pem")
-    # signer2 = SignerLocal("certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
-    # Create a mechanism to provide certificates for verification. Again, multiple
-    # implementations, entirely local, fetch from Directory with local caching, etc.
-    # This also provides the signing CA root certificate, which could just be included
-    # in the application code.
-    certificates = CertificatesLocal("certs", "certs/4-signing-ca-cert.pem")
+    # Uses a Certificate Provider object for access to certificate policy.
+    signer1 = SignerLocal(certificate_provider, "certs/123456-bundle.pem", "certs/6-application-one-key.pem")
+    signer2 = SignerLocal(certificate_provider, "certs/98765-bundle.pem", "certs/7-application-two-key.pem")
+    # signer2 = SignerLocal(certificate_provider, "certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
 
     # Create a record and add two steps
     record = Record()
@@ -60,7 +70,7 @@ if __name__ == "__main__":
     # print(record2.encoded())
 
     # Verify the record using the certificates
-    record2.verify(certificates)
+    record2.verify(certificate_provider)
     # Print the encoded form -- this is how it will be transported
     print("----- First record -----")
     print(json.dumps(record2.encoded(), indent=2).encode("utf-8").decode('utf-8'))
@@ -73,10 +83,18 @@ if __name__ == "__main__":
         "of": "itINsGtU"
     })
     record3 = record2.sign(signer2)
-    record3.verify(certificates)
+    record3.verify(certificate_provider)
 
     # Print records
     print("----- Second record, including first record -----")
     print(json.dumps(record3.encoded(), indent=2).encode("utf-8").decode('utf-8'))
     print("----- Decoded form of record including signature information -----")
     print(json.dumps(record3.decoded(), indent=2).encode("utf-8").decode('utf-8'))
+
+
+
+if __name__ == "__main__":
+    # Self-contained, with certificates encoded
+    create_provenance_records(True)
+    # Without certificates, for much smaller records
+    create_provenance_records(False)
