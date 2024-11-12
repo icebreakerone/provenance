@@ -1,9 +1,10 @@
 import json
 
 from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 
 from ib1.provenance import Record
-from ib1.provenance.signing import SignerLocal
+from ib1.provenance.signing import SignerFiles, SignerInMemory
 from ib1.provenance.certificates import (
     CertificatesProviderSelfContainedRecord,
     CertificatesProviderLocal,
@@ -34,15 +35,21 @@ def create_provenance_records(self_contained):
     # A few signer classes should be provided, eg local PEM files like this one,
     # or a key stored in AWS' key service.
     # Uses a Certificate Provider object for access to certificate policy.
-    signer1 = SignerLocal(
+    # Signer with certificates and key stored in files:
+    signer1 = SignerFiles(
         certificate_provider,
         "certs/123456-bundle.pem",
         "certs/6-application-one-key.pem",
     )
-    signer2 = SignerLocal(
+    # Signer using in-memory Python objects:
+    with open("certs/98765-bundle.pem", "rb") as certs:
+        signer2_certs = x509.load_pem_x509_certificates(certs.read())
+    with open("certs/7-application-two-key.pem", "rb") as key:
+        signer2_key = serialization.load_pem_private_key(key.read(), password=None)
+    signer2 = SignerInMemory(
         certificate_provider,
-        "certs/98765-bundle.pem",
-        "certs/7-application-two-key.pem",
+        signer2_certs,  # list containing certificate and issuer chain
+        signer2_key     # private key
     )
     # signer2 = SignerLocal(certificate_provider, "certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
 

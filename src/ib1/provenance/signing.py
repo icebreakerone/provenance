@@ -5,13 +5,11 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 
 
-class SignerLocal:
-    def __init__(self, certificate_provider, certificate_file, key_file):
+class SignerInMemory:
+    def __init__(self, certificate_provider, certificates, private_key):
         self._certificate_provider = certificate_provider
-        with open(certificate_file, "rb") as cert:
-            self._certificates = x509.load_pem_x509_certificates(cert.read())
-        with open(key_file, "rb") as key:
-            self._private_key = serialization.load_pem_private_key(key.read(), password=None)
+        self._certificates = certificates
+        self._private_key = private_key
 
     def serial(self):
         return str(self._certificates[0].serial_number) # String, as JSON rounds large integers
@@ -24,3 +22,11 @@ class SignerLocal:
     def sign(self, data):
         # TODO: Use correct algorithm for type of key in certificate, assuming EC crypto
         return self._private_key.sign(data, ec.ECDSA(hashes.SHA256()))
+
+class SignerFiles(SignerInMemory):
+    def __init__(self, certificate_provider, certificate_file, key_file):
+        with open(certificate_file, "rb") as certs:
+            certificates = x509.load_pem_x509_certificates(certs.read())
+        with open(key_file, "rb") as key:
+            private_key = serialization.load_pem_private_key(key.read(), password=None)
+        super().__init__(certificate_provider, certificates, private_key)
