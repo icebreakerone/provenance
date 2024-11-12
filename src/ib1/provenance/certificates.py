@@ -93,7 +93,7 @@ class CertificatesProviderSelfContainedRecord(CertificateProviderBase):
             raise Exception("Certificate serial "+serial+" is not present in record")
         signing_cert, *path_serials = certs
         cert_chain = [signing_cert]
-        cert_chain.append(*list(map(
+        cert_chain.extend(list(map(
             lambda s: certificates_from_record[s][0],
             path_serials
         )))

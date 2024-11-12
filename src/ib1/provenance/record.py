@@ -112,7 +112,7 @@ class Record:
                 # Represent path as [pem encoded cert, serials of issuer chain ...]
                 first_cert, *other_certs = certs_for_record
                 cert_path = [first_cert.public_bytes(serialization.Encoding.PEM).decode("utf-8")]
-                cert_path.append(*list(map(
+                cert_path.extend(list(map(
                     lambda c: str(c.serial_number), other_certs
                 )))
                 certificates[serial] = cert_path
