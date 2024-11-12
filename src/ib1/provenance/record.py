@@ -6,6 +6,9 @@ import datetime
 from cryptography.hazmat.primitives import serialization
 
 
+CURRENT_CONTAINER_FORMAT_VERSION = 0
+
+
 class Record:
 
     # data attributes:
@@ -38,12 +41,15 @@ class Record:
 
     def _verify_record_container(self, container, certificates_from_record, certificate_provider, steps, signer_stack):
         *data, sig_block = container
-        serial, sign_timestamp, signature = sig_block
+        container_format_version, serial, sign_timestamp, signature = sig_block
+        # Check it's an understood format (multiple versions of formats may be included in a single record)
+        if container_format_version is not CURRENT_CONTAINER_FORMAT_VERSION:
+            raise Exception("Cannot decode container format version: "+str(container_format_version))
         # Serial number must only be a number
         if str(int(serial)) != serial:
             raise Exception("Bad certificate serial number in record: "+serial)
         # Check signatures at this level and get signer information
-        data_for_signing = self._data_for_signing(data, [serial, sign_timestamp])
+        data_for_signing = self._data_for_signing(data, [str(container_format_version), serial, sign_timestamp])
         signer_info = certificate_provider._verify(certificates_from_record, serial, sign_timestamp, data_for_signing.encode("utf-8"), base64.urlsafe_b64decode(signature))
         # Recurse into signed data, collecting decoded steps and adding signer info
         for e in data:
@@ -92,9 +98,10 @@ class Record:
             output.append(self._encode_step(s)) # unencoded, not signed
         serial = signer._serial()
         sign_timestamp = self._timestamp_now_iso8601()
-        data_for_signing = self._data_for_signing(output, [serial, sign_timestamp])
+        data_for_signing = self._data_for_signing(output, [str(CURRENT_CONTAINER_FORMAT_VERSION), serial, sign_timestamp])
         signature = signer._sign(data_for_signing.encode("utf-8"))
         output.append([
+            CURRENT_CONTAINER_FORMAT_VERSION,
             serial,
             sign_timestamp,
             base64.urlsafe_b64encode(signature).decode('utf-8')
@@ -124,6 +131,8 @@ class Record:
         for e in data:
             if isinstance(e, str):
                 gather.append(e)
+            elif isinstance(e, int):
+                gather.append(str(e))
             else:
                 gather.append("%")
                 gather.append(self._data_for_signing(e))
