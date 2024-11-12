@@ -55,9 +55,13 @@ def create_provenance_records(self_contained):
 
     # Create a record and add two steps
     record = Record()
-    record.add_step(
+    origin_id = record.add_step(
         {
-            "id": "URd0wgs",
+            "type": "origin"
+        }
+    )
+    transfer_id = record.add_step(
+        {
             "type": "transfer",
             "from": "https://directory.estf.ib1.org/member/28761",
             "source": {
@@ -73,17 +77,16 @@ def create_provenance_records(self_contained):
     )
     record.add_step(
         {
-            "id": "itINsGtU",
             "type": "receipt",
             "from": "https://directory.estf.ib1.org/member/237346",
-            "of": "URd0wgs",
+            "transfer": transfer_id,
         }
     )
     # Add steps from another record
     record_for_adding = Record()
+    record_for_adding.add_step({"type":"origin"})
     record_for_adding.add_step(
         {
-            "id": "Hsdu28",
             "type": "transfer",
             "from": "https://directory.estf.ib1.org/member/3456643",
             "source": {
@@ -105,7 +108,6 @@ def create_provenance_records(self_contained):
     # Add more steps to this, and sign it, then verify the new version
     record2.add_step(
         {
-            "id": "wbgoUD",
             "type": "process",
             "process": "https://directory.estf.ib1.org/scheme/electricity/process/emissions-report",
             "of": "itINsGtU",

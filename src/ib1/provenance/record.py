@@ -5,6 +5,8 @@ import datetime
 
 from cryptography.hazmat.primitives import serialization
 
+from .identifier import globally_unique_step_identifier
+
 
 CURRENT_CONTAINER_FORMAT_VERSION = 0
 
@@ -37,6 +39,7 @@ class Record:
         if certificates_from_record is None:
             certificates_from_record = {}
         self._verify_record_container(self._record["steps"], certificates_from_record, certificate_provider, steps, signer_stack)
+        # TODO: Verify origins top level property is correct?
         self._verified = steps
 
     def _verify_record_container(self, container, certificates_from_record, certificate_provider, steps, signer_stack):
@@ -76,9 +79,17 @@ class Record:
         self._signed = False
         self._verified = None
         step = copy.deepcopy(step_in)
-        if not "timestamp" in step:
-            step["timestamp"] = self._timestamp_now_iso8601()
-            # TODO: Verify timestamp is in the right format (but signing cert does not need to be valid at that time?)
+        # Step identifier
+        if "id" in step:
+            raise Exception("Step may not contain an id key. Identifiers are allocated automatically and returned by this function.")
+        id = globally_unique_step_identifier()
+        # Step timestamp
+        # TODO: Verify timestamp is in the right format (but signing cert does not need to be valid at that time?)
+        timestamp = step.pop("timestamp", None)
+        if not timestamp:
+            timestamp = self._timestamp_now_iso8601()
+        # Step type
+        step_type = step.pop("type")
         # No keys with _ prefix allowed
         prohibited_keys_present = list(filter(
             lambda k: k.startswith('_'),
@@ -87,20 +98,31 @@ class Record:
         if prohibited_keys_present:
             raise Exception("Step may not contain keys beginning with an underscore. Prohibited keys present: "+(", ".join(prohibited_keys_present)))
         # Add to list of steps pending addition
-        self._additional_steps.append(step)
+        self._additional_steps.append({
+            "id": id,
+            "timestamp": timestamp,
+            "type": step_type,
+            **step
+        })
+        return id
 
     def sign(self, signer):
         output = []
+        origins = []
         certificates = {}
         if self._record is not None:
+            origins = self._record["origins"]
             if "certificates" in self._record:
                 certificates.update(self._record["certificates"])
             output.append(self._record["steps"]) # signed and encoded
         for r in self._additional_records:
+            origins.extend(r["origins"])
             if "certificates" in r:
                 certificates.update(r["certificates"])
             output.append(r["steps"]) # signed and encoded
         for s in self._additional_steps:
+            if s["type"] is "origin":
+                origins.append(s["id"])
             output.append(self._encode_step(s)) # unencoded, not signed
         serial = signer.serial()
         sign_timestamp = self._timestamp_now_iso8601()
@@ -124,7 +146,10 @@ class Record:
                 certificates[serial] = cert_path
                 for c in other_certs:
                     certificates[str(c.serial_number)] = [c.public_bytes(serialization.Encoding.PEM).decode("utf-8")]
-        encoded = {"steps": copy.deepcopy(output)}
+        encoded = {
+            "origins": origins,
+            "steps": copy.deepcopy(output)
+        }
         if certificates:
             encoded["certificates"] = certificates
         return Record(encoded)
