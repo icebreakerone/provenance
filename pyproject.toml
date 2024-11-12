@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "ib1-provenance"
+version = "0.1"
+description = "Tools to encode, decode, and sign provenance data"
+authors = ["Ben Summers <ben.summers@icebreakerone.org>"]
+readme = "README.md"
+packages = [{include = "ib1", from = "src"}]
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+cryptography = "^43.0.1"
+asn1crypto = "^1.5.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+mypy = "^1.12.0"
+ruff = "^0.6.9"
+pytest-cov = "^5.0.0"
+tox = "^4.23.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
