@@ -13,14 +13,14 @@ class SignerLocal:
         with open(key_file, "rb") as key:
             self._private_key = serialization.load_pem_private_key(key.read(), password=None)
 
-    def _serial(self):
+    def serial(self):
         return str(self._certificates[0].serial_number) # String, as JSON rounds large integers
 
-    def _certificates_for_record(self):
+    def certificates_for_record(self):
         if not self._certificate_provider.policy_include_certificates_in_record():
             return None
         return self._certificates.copy();
 
-    def _sign(self, data):
+    def sign(self, data):
         # TODO: Use correct algorithm for type of key in certificate, assuming EC crypto
         return self._private_key.sign(data, ec.ECDSA(hashes.SHA256()))

@@ -48,7 +48,7 @@ class CertificateProviderBase:
         return False
 
     def _verify(self, certificates_from_record, serial, sign_timestamp, data, signature):
-        certs = self._certificates_for_serial(certificates_from_record, serial)
+        certs = self.certificates_for_serial(certificates_from_record, serial)
         # first certificate in file is signing certificate
         signing_cert, *issuer_chain = certs
         # 1) check certificate chain validity at the time of signature
@@ -76,7 +76,7 @@ class CertificatesProviderLocal(CertificateProviderBase):
         CertificateProviderBase.__init__(self, root_ca_certificate)
         self._directory = directory
 
-    def _certificates_for_serial(self, certificates_from_record, serial):
+    def certificates_for_serial(self, certificates_from_record, serial):
         certificate_filename = self._directory + '/' + str(int(serial)) + '-bundle.pem'
         with open(certificate_filename, "rb") as f:
             return x509.load_pem_x509_certificates(f.read())
@@ -87,7 +87,7 @@ class CertificatesProviderSelfContainedRecord(CertificateProviderBase):
     def policy_include_certificates_in_record(self):
         return True
 
-    def _certificates_for_serial(self, certificates_from_record, serial):
+    def certificates_for_serial(self, certificates_from_record, serial):
         certs = certificates_from_record.get(serial)
         if certs is None:
             raise Exception("Certificate serial "+serial+" is not present in record")

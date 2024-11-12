@@ -102,10 +102,10 @@ class Record:
             output.append(r["steps"]) # signed and encoded
         for s in self._additional_steps:
             output.append(self._encode_step(s)) # unencoded, not signed
-        serial = signer._serial()
+        serial = signer.serial()
         sign_timestamp = self._timestamp_now_iso8601()
         data_for_signing = self._data_for_signing(output, [str(CURRENT_CONTAINER_FORMAT_VERSION), serial, sign_timestamp])
-        signature = signer._sign(data_for_signing.encode("utf-8"))
+        signature = signer.sign(data_for_signing.encode("utf-8"))
         output.append([
             CURRENT_CONTAINER_FORMAT_VERSION,
             serial,
@@ -113,7 +113,7 @@ class Record:
             base64.urlsafe_b64encode(signature).decode('utf-8')
         ])
         if not serial in certificates:
-            certs_for_record = signer._certificates_for_record()
+            certs_for_record = signer.certificates_for_record()
             if certs_for_record is not None:
                 # Represent path as [pem encoded cert, serials of issuer chain ...]
                 first_cert, *other_certs = certs_for_record
