@@ -19,10 +19,7 @@ class SignerLocal:
     def _certificates_for_record(self):
         if not self._certificate_provider.policy_include_certificates_in_record():
             return None
-        return list(map(
-            lambda c: c.public_bytes(serialization.Encoding.PEM).decode("utf-8"),
-            self._certificates
-        ))
+        return self._certificates.copy();
 
     def _sign(self, data):
         # TODO: Use correct algorithm for type of key in certificate, assuming EC crypto

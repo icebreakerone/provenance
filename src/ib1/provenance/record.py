@@ -3,6 +3,8 @@ import json
 import copy
 import datetime
 
+from cryptography.hazmat.primitives import serialization
+
 
 class Record:
 
@@ -100,7 +102,15 @@ class Record:
         if not serial in certificates:
             certs_for_record = signer._certificates_for_record()
             if certs_for_record is not None:
-                certificates[serial] = certs_for_record
+                # Represent path as [pem encoded cert, serials of issuer chain ...]
+                first_cert, *other_certs = certs_for_record
+                cert_path = [first_cert.public_bytes(serialization.Encoding.PEM).decode("utf-8")]
+                cert_path.append(*list(map(
+                    lambda c: str(c.serial_number), other_certs
+                )))
+                certificates[serial] = cert_path
+                for c in other_certs:
+                    certificates[str(c.serial_number)] = [c.public_bytes(serialization.Encoding.PEM).decode("utf-8")]
         encoded = {"steps": copy.deepcopy(output)}
         if certificates:
             encoded["certificates"] = certificates

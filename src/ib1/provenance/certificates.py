@@ -91,7 +91,13 @@ class CertificatesProviderSelfContainedRecord(CertificateProviderBase):
         certs = certificates_from_record.get(serial)
         if certs is None:
             raise Exception("Certificate serial "+serial+" is not present in record")
+        signing_cert, *path_serials = certs
+        cert_chain = [signing_cert]
+        cert_chain.append(*list(map(
+            lambda s: certificates_from_record[s][0],
+            path_serials
+        )))
         return list(map(
             lambda c: x509.load_pem_x509_certificate(c.encode("utf-8")),
-            certs
+            cert_chain
         ))
