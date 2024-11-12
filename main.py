@@ -11,6 +11,9 @@ from ib1.provenance.certificates import (
 )
 
 
+TRUST_FRAMEWORK_URL = "https://registry.estf.ib1.org/trust-framework"
+
+
 def create_provenance_records(self_contained):
     # Create a mechanism to provide certificates for verification. Multiple
     # implementations: embed certificates in record, entirely local, fetch from
@@ -54,7 +57,7 @@ def create_provenance_records(self_contained):
     # signer2 = SignerLocal(certificate_provider, "certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
 
     # Create a record and add two steps
-    record = Record()
+    record = Record(TRUST_FRAMEWORK_URL)
     origin_id = record.add_step(
         {
             "type": "origin"
@@ -83,7 +86,7 @@ def create_provenance_records(self_contained):
         }
     )
     # Add steps from another record
-    record_for_adding = Record()
+    record_for_adding = Record(TRUST_FRAMEWORK_URL)
     record_for_adding.add_step({"type":"origin"})
     record_for_adding.add_step(
         {
@@ -96,7 +99,8 @@ def create_provenance_records(self_contained):
     )
     record.add_record(record_for_adding.sign(signer2))
     # Then sign it, returning a new Record object
-    record2 = record.sign(signer1)
+    record2_generated = record.sign(signer1)
+    record2 = Record(TRUST_FRAMEWORK_URL, record2_generated.encoded())  # create a new Record from the encoded structure
     # print(record2.encoded())
 
     # Verify the record using the certificates

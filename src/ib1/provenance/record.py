@@ -20,10 +20,13 @@ class Record:
     #   _signed -- whether the record is completely signed
     #   _verified -- whether the record has had signatures verified
 
-    def __init__(self, record=None):
+    def __init__(self, trust_framework, record=None):
         if record is not None:
             if not isinstance(record.get("steps"), list):
                 raise Exception("Not an encoded Provenance record")
+            if trust_framework is not record["ib1:provenance"]:
+                raise Exception("Unexpected trust framework when creating Record from encoded form")
+        self.trust_framework = trust_framework
         self._record = record
         self._additional_records = []
         self._additional_steps = []
@@ -73,6 +76,8 @@ class Record:
         self._verified = None
         if not isinstance(record, Record):
             raise Exception("Not a Record object")
+        if self.trust_framework is not record.trust_framework:
+            raise Exception("Incompatible trust frameworks in added Record")
         self._additional_records.append(record.encoded())
 
     def add_step(self, step_in):
@@ -147,18 +152,21 @@ class Record:
                 for c in other_certs:
                     certificates[str(c.serial_number)] = [c.public_bytes(serialization.Encoding.PEM).decode("utf-8")]
         encoded = {
+            "ib1:provenance": self.trust_framework,
             "origins": origins,
             "steps": copy.deepcopy(output)
         }
         if certificates:
             encoded["certificates"] = certificates
-        return Record(encoded)
+        return Record(self.trust_framework, encoded)
 
     def _encode_step(self, step):
         return base64.urlsafe_b64encode(json.dumps(step, separators=(",", ":")).encode("utf-8")).decode('utf-8')
 
-    def _data_for_signing(self, data, additional=None):
+    def _data_for_signing(self, data, additional=None, is_root=True):
         gather = []
+        if is_root:
+            gather.append(self.trust_framework)
         for e in data:
             if isinstance(e, str):
                 gather.append(e)
@@ -166,7 +174,7 @@ class Record:
                 gather.append(str(e))
             else:
                 gather.append("%")
-                gather.append(self._data_for_signing(e))
+                gather.append(self._data_for_signing(e, None, False))
                 gather.append("&")
         if additional is not None:
             gather.extend(additional)
