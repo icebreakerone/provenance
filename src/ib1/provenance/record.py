@@ -59,7 +59,7 @@ class Record:
                 del signer_stack[-1]
             else:
                 decoded_step = json.loads(base64.urlsafe_b64decode(e))
-                decoded_step[".signature"] = {
+                decoded_step["_signature"] = {
                     "signed": signer_info,
                     "includedBy": copy.copy(signer_stack)
                 }
@@ -78,9 +78,15 @@ class Record:
         step = copy.deepcopy(step_in)
         if not "timestamp" in step:
             step["timestamp"] = self._timestamp_now_iso8601()
-            # TODO: Verify timestamp is in the right format (and maybe signing cert is valid at that time?)
-        if ".signature" in step:
-            raise Exception("Step may not contain .signature key")
+            # TODO: Verify timestamp is in the right format (but signing cert does not need to be valid at that time?)
+        # No keys with _ prefix allowed
+        prohibited_keys_present = list(filter(
+            lambda k: k.startswith('_'),
+            step.keys()
+        ))
+        if prohibited_keys_present:
+            raise Exception("Step may not contain keys beginning with an underscore. Prohibited keys present: "+(", ".join(prohibited_keys_present)))
+        # Add to list of steps pending addition
         self._additional_steps.append(step)
 
     def sign(self, signer):
