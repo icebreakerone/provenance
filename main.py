@@ -11,7 +11,7 @@ from ib1.provenance.certificates import (
 )
 
 
-TRUST_FRAMEWORK_URL = "https://registry.estf.ib1.org/trust-framework"
+TRUST_FRAMEWORK_URL = "https://registry.core.trust.ib1.org/trust-framework"
 
 
 def create_provenance_records(self_contained):
@@ -38,23 +38,29 @@ def create_provenance_records(self_contained):
     # A few signer classes should be provided, eg local PEM files like this one,
     # or a key stored in AWS' key service.
     # Uses a Certificate Provider object for access to certificate policy.
-    # Signer with certificates and key stored in files:
-    signer1 = SignerFiles(
+    # Energy Data Provider Signer with certificates and key stored in files:
+    signer_edp = SignerFiles(
         certificate_provider,
         "certs/123456-bundle.pem",
-        "certs/6-application-one-key.pem",
+        "certs/6-honest-daves-accurate-meter-readings-key.pem",
     )
-    # Signer using in-memory Python objects:
+    # Carbon Accounting Platform Signer using in-memory Python objects:
     with open("certs/98765-bundle.pem", "rb") as certs:
-        signer2_certs = x509.load_pem_x509_certificates(certs.read())
-    with open("certs/7-application-two-key.pem", "rb") as key:
-        signer2_key = serialization.load_pem_private_key(key.read(), password=None)
-    signer2 = SignerInMemory(
+        signer_cap_certs = x509.load_pem_x509_certificates(certs.read())
+    with open("certs/7-emission-calculations-4-u-key.pem", "rb") as key:
+        signer_cap_key = serialization.load_pem_private_key(key.read(), password=None)
+    signer_cap = SignerInMemory(
         certificate_provider,
-        signer2_certs,  # list containing certificate and issuer chain
-        signer2_key     # private key
+        signer_cap_certs,  # list containing certificate and issuer chain
+        signer_cap_key     # private key
     )
-    # signer2 = SignerLocal(certificate_provider, "certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
+    # signer_cap = SignerLocal(certificate_provider, "certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
+    # Bank Signer
+    signer_bank = SignerFiles(
+        certificate_provider,
+        "certs/88889999-bundle.pem",
+        "certs/8-green-bank-of-london-key.pem",
+    )
 
     # Create a record and add two steps
     record = Record(TRUST_FRAMEWORK_URL)
@@ -66,7 +72,7 @@ def create_provenance_records(self_contained):
     transfer_id = record.add_step(
         {
             "type": "transfer",
-            "from": "https://directory.estf.ib1.org/member/28761",
+            "from": "https://directory.core.trust.ib1.org/member/28761",
             "source": {
                 "endpoint": "https://api65.example.com/energy",
                 "parameters": {
@@ -81,7 +87,7 @@ def create_provenance_records(self_contained):
     record.add_step(
         {
             "type": "receipt",
-            "from": "https://directory.estf.ib1.org/member/237346",
+            "from": "https://directory.core.trust.ib1.org/member/237346",
             "transfer": transfer_id,
         }
     )
@@ -91,15 +97,15 @@ def create_provenance_records(self_contained):
     record_for_adding.add_step(
         {
             "type": "transfer",
-            "from": "https://directory.estf.ib1.org/member/3456643",
+            "from": "https://directory.core.trust.ib1.org/member/3456643",
             "source": {
                 "endpoint": "https://e1.example.org/emission",
             },
         }
     )
-    record.add_record(record_for_adding.sign(signer2))
+    record.add_record(record_for_adding.sign(signer_cap))
     # Then sign it, returning a new Record object
-    record2_generated = record.sign(signer1)
+    record2_generated = record.sign(signer_edp)
     record2 = Record(TRUST_FRAMEWORK_URL, record2_generated.encoded())  # create a new Record from the encoded structure
     # print(record2.encoded())
 
@@ -113,11 +119,11 @@ def create_provenance_records(self_contained):
     record2.add_step(
         {
             "type": "process",
-            "process": "https://directory.estf.ib1.org/scheme/electricity/process/emissions-report",
+            "process": "https://directory.core.trust.ib1.org/scheme/perseus/process/emissions-report",
             "of": "itINsGtU",
         }
     )
-    record3 = record2.sign(signer2)
+    record3 = record2.sign(signer_bank)
     record3.verify(certificate_provider)
 
     # Print records
