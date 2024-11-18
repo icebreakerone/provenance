@@ -249,3 +249,39 @@ class Record:
             isoformat().
             replace("+00:00", "Z")
         )
+
+    def to_graphviz(self):
+        self._require_verified()
+        signers = {}
+        dot = ["digraph ProvenanceRecord {"]
+        for s in self._verified:
+            id = s["id"]
+            shape = "box"
+            match s["type"]:
+                case "origin":
+                    shape = "diamond"
+                case "transfer":
+                    dot.append("  \""+s["of"]+"\" -> \""+id+"\";")
+                case "receipt":
+                    shape = "box3d"
+                    dot.append("  \""+s["transfer"]+"\" -> \""+id+"\";")
+                case "process":
+                    shape = "parallelogram"
+                    for i in s["inputs"]:
+                        dot.append("  \""+i+"\" -> \""+id+"\";")
+            dot.append("  \""+id+"\" [shape="+shape+",label=\""+s["type"]+"\\n"+id+"\"];")
+            signer = s["_signature"]["signed"]["name"]
+            if signer not in signers:
+                signers[signer] = []
+            signers[signer].append(id)
+        index = 0
+        for signer in signers:
+            dot.append("  subgraph cluster_"+str(index)+" {")
+            index += 1
+            dot.append("    graph[style=dashed];")
+            dot.append("    label = \""+signer+"\";")
+            for i in signers[signer]:
+                dot.append("    \""+i+"\";")
+            dot.append("  }")
+        dot.append("}")
+        return "\n".join(dot)

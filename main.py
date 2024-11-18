@@ -262,7 +262,8 @@ def create_provenance_records(self_contained):
     print("----- Decoded form of record including signature information -----")
     final_record.verify(certificate_provider)
     print(json.dumps(final_record.decoded(), indent=2).encode("utf-8").decode("utf-8"))
-
+    print("----- Graphviz dot file -----")
+    print(final_record.to_graphviz())
 
 if __name__ == "__main__":
     # Self-contained, with certificates encoded
