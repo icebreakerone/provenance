@@ -62,75 +62,206 @@ def create_provenance_records(self_contained):
         "certs/8-green-bank-of-london-key.pem",
     )
 
-    # Create a record and add two steps
-    record = Record(TRUST_FRAMEWORK_URL)
-    origin_id = record.add_step(
+    # -----------------------------------------------------------------------
+    # ===== EDP starts a new Record, fetching Smart Meter data
+    edp_record = Record(TRUST_FRAMEWORK_URL)
+    # - Origin step for the smart meter data
+    origin_id = edp_record.add_step(
         {
-            "type": "origin"
+            "type": "origin",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/meter",
+            "origin": "https://www.smartdcc.co.uk/",
+            "originLicence": "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
+            "external": True,
+            "perseus:meteringPeriod": {
+                "from": "2023-09-01Z",
+                "to": "2024-09-01Z"
+            },
+            "perseus:assurance": {
+                "dataSource": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
+                "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
+                "processing": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
+            },
+            "perseus:signatureSmartDCC": "jOEd7Yzix+v4B2HMqeoa2JRd4L9mLPlRbp98HGEpQmzuDSXipYVJDQ" # including an external signature?
         }
     )
-    transfer_id = record.add_step(
+    # - Transfer step to send it to the CAP
+    edp_record.add_step(
         {
             "type": "transfer",
-            "from": "https://directory.core.trust.ib1.org/member/28761",
-            "source": {
-                "endpoint": "https://api65.example.com/energy",
-                "parameters": {
-                    "from": "2024-09-16T00:00:00Z",
-                    "to": "2024-09-16T12:00:00Z",
-                },
-                "permission": {"encoded": "permission record"},
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "of": origin_id,
+            "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/consumption-data",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/consumption-data/1.0",
+            "service": "https://api.honestdave.example.com/meter-readings/0",
+            "path": "/readings",
+            "parameters": {
+                "measure": "import",
+                "from": "2023-09-01Z",
+                "to": "2024-09-01Z"
             },
-            "timestamp": "2024-09-16T15:32:56Z",  # in the past, signing is independent of times in steps
+            "account": "/yl4Y/aV6b80fo5cnmuDDByfuEA=",
+            "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24"
         }
     )
-    record.add_step(
+    # EDP signs the steps
+    edp_record_signed = edp_record.sign(signer_edp)
+    # Get encoded data for inclusion in data response
+    edp_data_attachment = edp_record_signed.encoded()
+
+    # -----------------------------------------------------------------------
+    # ===== CAP retrieves the data from the EDP, who includes a provenance record in the response
+    cap_record = Record(TRUST_FRAMEWORK_URL, edp_data_attachment)
+    # - Verify the signatures on the record
+    cap_record.verify(certificate_provider)
+    # - Find the transfer step, passing in the expected values for the transfer step (exceptions if not found)
+    transfer_from_edp_step = cap_record.find_step(
+        {
+            # Same values as the transfer step added by the EDP
+            "type": "transfer",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/consumption-data",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/consumption-data/1.0",
+            "service": "https://api.honestdave.example.com/meter-readings/0",
+            "path": "/readings",
+            "parameters": {
+                "measure": "import",
+                "from": "2023-09-01Z",
+                "to": "2024-09-01Z"
+            },
+            # Check the member it came from by checking URL in certificate
+            "_signature": {
+                "signed": {
+                    "member": "https://directory.core.trust.ib1.org/member/2876152",
+                    # And that they have the expected role (cert may contain more than this role)
+                    "roles": [
+                        "https://registry.core.trust.ib1.org/scheme/perseus/role/energy-data-provider"
+                    ]
+                }
+            }
+        }
+    )
+    # - Add a receipt step
+    cap_receipt_id = cap_record.add_step(
         {
             "type": "receipt",
-            "from": "https://directory.core.trust.ib1.org/member/237346",
-            "transfer": transfer_id,
+            "transfer": transfer_from_edp_step["id"]
         }
     )
-    # Add steps from another record
-    record_for_adding = Record(TRUST_FRAMEWORK_URL)
-    record_for_adding.add_step({"type":"origin"})
-    record_for_adding.add_step(
+    # - Add an origin step for grid intensity data
+    cap_intensity_origin_id = cap_record.add_step(
         {
-            "type": "transfer",
-            "from": "https://directory.core.trust.ib1.org/member/3456643",
-            "source": {
-                "endpoint": "https://e1.example.org/emission",
+            "type": "origin",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/grid-carbon-intensity",
+            "origin": "https://api.carbonintensity.org.uk/",
+            "originLicence": "https://creativecommons.org/licenses/by/4.0/",
+            "external": True,
+            "perseus:meteringPeriod": {
+                "from": "2023-09-01Z",
+                "to": "2024-09-01Z"
             },
+            "perseus:postcode": "CF99",
+            "perseus:assurance": {
+                "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Complete"
+            }
         }
     )
-    record.add_record(record_for_adding.sign(signer_cap))
-    # Then sign it, returning a new Record object
-    record2_generated = record.sign(signer_edp)
-    record2 = Record(TRUST_FRAMEWORK_URL, record2_generated.encoded())  # create a new Record from the encoded structure
-    # print(record2.encoded())
-
-    # Verify the record using the certificates
-    record2.verify(certificate_provider)
-    # Print the encoded form -- this is how it will be transported
-    print("----- First record -----")
-    print(json.dumps(record2.encoded(), indent=2).encode("utf-8").decode("utf-8"))
-
-    # Add more steps to this, and sign it, then verify the new version
-    record2.add_step(
+    # - Add a process step to combine the data from the EDP and the grid intensity API into the report
+    cap_processing_id = cap_record.add_step(
         {
             "type": "process",
-            "process": "https://directory.core.trust.ib1.org/scheme/perseus/process/emissions-report",
-            "of": "itINsGtU",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "inputs": [
+                cap_receipt_id,
+                cap_intensity_origin_id
+            ],
+            "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations",
+            "perseus:assurance": {
+                "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
+            }
         }
     )
-    record3 = record2.sign(signer_bank)
-    record3.verify(certificate_provider)
+    # - Add a transfer step to send it to the bank
+    cap_record.add_step(
+        {
+            "type": "transfer",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "of": cap_processing_id,
+            "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.4",
+            "service": "https://api.emmissions4u.example.com/emission-report/23",
+            "path": "/emissions",
+            "parameters": {
+                "from": "2023-09Z",
+                "to": "2024-09Z"
+            },
+            "account": "dbd16978-a0a642d9aa2d95318b50e605",
+            "transaction": "C5813265-515B-48DC-925F-832FA418F7E2"
+        }
+    )
+
+    # CAP signs the steps
+    cap_record_signed = cap_record.sign(signer_cap)
+    # Get encoded data for inclusion in data response
+    cap_data_attachment = cap_record_signed.encoded()
+
+    # -----------------------------------------------------------------------
+    # ===== Bank retrieves the data from the CAP, who includes a provenance record in the response
+    bank_record = Record(TRUST_FRAMEWORK_URL, cap_data_attachment)
+    # - Verify the signatures on the record
+    bank_record.verify(certificate_provider)
+    # - Find the transfer step, passing in the expected values for the transfer step (exceptions if not found)
+    transfer_from_cap_step = bank_record.find_step(
+        {
+            # Same values as the transfer step added by the CAP
+            "type": "transfer",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.4",
+            "service": "https://api.emmissions4u.example.com/emission-report/23",
+            "path": "/emissions",
+            "parameters": {
+                "from": "2023-09Z",
+                "to": "2024-09Z"
+            },
+            # Check the member it came from by checking URL in certificate
+            "_signature": {
+                "signed": {
+                    "member": "https://directory.core.trust.ib1.org/member/81524",
+                    # And that they have the expected role (cert may contain more than this role)
+                    "roles": [
+                        "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-platform"
+                    ]
+                }
+            }
+        }
+    )
+    # - Add a receipt step
+    bank_receipt_id = bank_record.add_step(
+        {
+            "type": "receipt",
+            "transfer": transfer_from_cap_step["id"]
+        }
+    )
+
+    # Bank signs the steps
+    bank_record_signed = bank_record.sign(signer_bank)
+
+    # ===== Final record after all the the steps have been added
+    final_record = bank_record_signed
 
     # Print records
-    print("----- Second record, including first record -----")
-    print(json.dumps(record3.encoded(), indent=2).encode("utf-8").decode("utf-8"))
+    print("----- Record (encoded for transfer) -----")
+    print(json.dumps(final_record.encoded(), indent=2).encode("utf-8").decode("utf-8"))
     print("----- Decoded form of record including signature information -----")
-    print(json.dumps(record3.decoded(), indent=2).encode("utf-8").decode("utf-8"))
+    final_record.verify(certificate_provider)
+    print(json.dumps(final_record.decoded(), indent=2).encode("utf-8").decode("utf-8"))
 
 
 if __name__ == "__main__":
