@@ -4,7 +4,7 @@ import base64
 import datetime
 
 from cryptography import x509
-from cryptography.x509.oid import ExtensionOID
+from cryptography.x509.oid import NameOID, ExtensionOID
 from cryptography.x509.verification import PolicyBuilder, Store
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -28,6 +28,9 @@ class SigningCertificate:
         if len(uri) != 1:
             raise Exception("Certificate doesn't contain exactly one URI subject alternative name")
         return uri[0]
+
+    def organisation_name(self):
+        return self._x509_certificate.subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
 
     def application(self):
         value = self._x509_certificate.extensions.get_extension_for_oid(OID_IB1_APPLICATION).value.value # type: ignore [attr-defined]
@@ -65,6 +68,7 @@ class CertificateProviderBase:
         cert_info = SigningCertificate(signing_cert)
         return {
             "member": cert_info.subject(),
+            "name": cert_info.organisation_name(),
             "application": cert_info.application(),
             "roles": cert_info.roles()
         }
