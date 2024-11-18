@@ -1,0 +1,11 @@
+[ v3_ca ]
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer
+keyUsage = critical, cRLSign, digitalSignature, keyCertSign
+basicConstraints = critical,CA:true
+
+[ v3_intermediate_ca ]
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer
+basicConstraints = critical,CA:true,pathlen:0
+keyUsage = critical, cRLSign, digitalSignature, keyCertSign
