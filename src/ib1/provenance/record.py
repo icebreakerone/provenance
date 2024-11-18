@@ -115,6 +115,42 @@ class Record:
         })
         return id
 
+    def find_step(self, required_values):
+        steps = self.filter_steps(required_values)
+        if len(steps) == 0:
+            raise Exception("No step matches required values")
+        if len(steps) > 1:
+            raise Exception("More than one step matches required values")
+        return steps[0]
+
+    def filter_steps(self, required_values):
+        self._require_verified()
+        return list(filter(
+            lambda s: self._filter_step_contains(s, required_values),
+            self._verified
+        ))
+
+    def _filter_step_contains(self, step, required_values):
+        if isinstance(required_values, dict):
+            # If required_values is a dict, ensure step is a dict and contains all keys/values of required_values
+            if not isinstance(step, dict):
+                return False
+            for key, value in required_values.items():
+                if key not in step or not self._filter_step_contains(step[key], value):
+                    return False
+            return True
+        elif isinstance(required_values, list):
+            # If required_values is a list, ensure step is a list and contains all elements of required_values
+            if not isinstance(step, list):
+                return False
+            for item in required_values:
+                if not any(self._filter_step_contains(x, item) for x in step):
+                    return False
+            return True
+        else:
+            # If required_values is a primitive, ensure it matches the value in step
+            return step == required_values
+
     def sign(self, signer):
         output = []
         certificates = {}
