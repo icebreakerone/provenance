@@ -91,16 +91,18 @@ def create_provenance_records(self_contained):
             "originLicence": "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
             "external": True,
             "permissions": [edp_permission_id],
-            "perseus:meteringPeriod": {
-                "from": "2023-09-01Z",
-                "to": "2024-09-01Z"
+            "perseus:scheme": {
+                "meteringPeriod": {
+                    "from": "2023-09-01Z",
+                    "to": "2024-09-01Z"
+                },
+                "signatureSmartDCC": "jOEd7Yzix+v4B2HMqeoa2JRd4L9mLPlRbp98HGEpQmzuDSXipYVJDQ" # example of including an external signature?
             },
             "perseus:assurance": {
                 "dataSource": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
                 "processing": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
-            },
-            "perseus:signatureSmartDCC": "jOEd7Yzix+v4B2HMqeoa2JRd4L9mLPlRbp98HGEpQmzuDSXipYVJDQ" # including an external signature?
+            }
         }
     )
     # - Transfer step to send it to the CAP
@@ -195,11 +197,13 @@ def create_provenance_records(self_contained):
             "origin": "https://api.carbonintensity.org.uk/",
             "originLicence": "https://creativecommons.org/licenses/by/4.0/",
             "external": True,
-            "perseus:meteringPeriod": {
-                "from": "2023-09-01Z",
-                "to": "2024-09-01Z"
+            "perseus:scheme": {
+                "meteringPeriod": {
+                    "from": "2023-09-01Z",
+                    "to": "2024-09-01Z"
+                },
+                "postcode": "CF99"
             },
-            "perseus:postcode": "CF99",
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Complete"
             }
