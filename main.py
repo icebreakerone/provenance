@@ -65,6 +65,22 @@ def create_provenance_records(self_contained):
     # -----------------------------------------------------------------------
     # ===== EDP starts a new Record, fetching Smart Meter data
     edp_record = Record(TRUST_FRAMEWORK_URL)
+    # - Permission step to record consent by end user
+    edp_permission_id = edp_record.add_step(
+        {
+            "type": "permission",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "timestamp": "2024-09-20T12:16:11Z",    # granted in past; must match audit trail
+            "account": "/yl4Y/aV6b80fo5cnmuDDByfuEA=",
+            "allows": {
+                "licences": [
+                    "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
+                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/consumption-data/1.0"
+                ]
+            },
+            "expires": "2025-09-20T12:16:11Z"       # 1 year
+        }
+    )
     # - Origin step for the smart meter data
     origin_id = edp_record.add_step(
         {
@@ -74,6 +90,7 @@ def create_provenance_records(self_contained):
             "origin": "https://www.smartdcc.co.uk/",
             "originLicence": "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
             "external": True,
+            "permissions": [edp_permission_id],
             "perseus:meteringPeriod": {
                 "from": "2023-09-01Z",
                 "to": "2024-09-01Z"
@@ -102,8 +119,8 @@ def create_provenance_records(self_contained):
                 "from": "2023-09-01Z",
                 "to": "2024-09-01Z"
             },
-            "account": "/yl4Y/aV6b80fo5cnmuDDByfuEA=",
-            "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24"
+            "permissions": [edp_permission_id],
+            "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24",
         }
     )
     # EDP signs the steps
@@ -151,6 +168,24 @@ def create_provenance_records(self_contained):
             "transfer": transfer_from_edp_step["id"]
         }
     )
+    # - Permission step to record consent to processing and future transfer
+    cap_permission_id = cap_record.add_step(
+        {
+            "type": "permission",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "timestamp": "2024-10-21T09:09:10Z",    # granted in past; must match audit trail
+            "account": "dbd16978-a0a642d9aa2d95318b50e605", # different to EDP as this is the CAP's account
+            "allows": {
+                "licences": [
+                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.4"
+                ],
+                "processes": [
+                    "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations"
+                ]
+            },
+            "expires": "2025-10-21T09:09:10Z"       # 1 year
+        }
+    )
     # - Add an origin step for grid intensity data
     cap_intensity_origin_id = cap_record.add_step(
         {
@@ -180,6 +215,7 @@ def create_provenance_records(self_contained):
                 cap_intensity_origin_id
             ],
             "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations",
+            "permissions": [cap_permission_id],
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
             }
@@ -200,7 +236,7 @@ def create_provenance_records(self_contained):
                 "from": "2023-09Z",
                 "to": "2024-09Z"
             },
-            "account": "dbd16978-a0a642d9aa2d95318b50e605",
+            "permissions": [cap_permission_id],
             "transaction": "C5813265-515B-48DC-925F-832FA418F7E2"
         }
     )
