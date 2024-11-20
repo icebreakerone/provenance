@@ -65,25 +65,44 @@ def create_provenance_records(self_contained):
     # -----------------------------------------------------------------------
     # ===== EDP starts a new Record, fetching Smart Meter data
     edp_record = Record(TRUST_FRAMEWORK_URL)
+    # - Permission step to record consent by end user
+    edp_permission_id = edp_record.add_step(
+        {
+            "type": "permission",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "timestamp": "2024-09-20T12:16:11Z",    # granted in past; must match audit trail
+            "account": "/yl4Y/aV6b80fo5cnmuDDByfuEA=",
+            "allows": {
+                "licences": [
+                    "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
+                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/0.1"
+                ]
+            },
+            "expires": "2025-09-20T12:16:11Z"       # 1 year
+        }
+    )
     # - Origin step for the smart meter data
     origin_id = edp_record.add_step(
         {
             "type": "origin",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/meter",
+            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/Meter",
             "origin": "https://www.smartdcc.co.uk/",
             "originLicence": "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
             "external": True,
-            "perseus:meteringPeriod": {
-                "from": "2023-09-01Z",
-                "to": "2024-09-01Z"
+            "permissions": [edp_permission_id],
+            "perseus:scheme": {
+                "meteringPeriod": {
+                    "from": "2023-09-01Z",
+                    "to": "2024-09-01Z"
+                },
+                "signatureSmartDCC": "jOEd7Yzix+v4B2HMqeoa2JRd4L9mLPlRbp98HGEpQmzuDSXipYVJDQ" # example of including an external signature?
             },
             "perseus:assurance": {
                 "dataSource": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
                 "processing": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
-            },
-            "perseus:signatureSmartDCC": "jOEd7Yzix+v4B2HMqeoa2JRd4L9mLPlRbp98HGEpQmzuDSXipYVJDQ" # including an external signature?
+            }
         }
     )
     # - Transfer step to send it to the CAP
@@ -93,8 +112,8 @@ def create_provenance_records(self_contained):
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "of": origin_id,
             "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/consumption-data",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/consumption-data/1.0",
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/0.1",
             "service": "https://api.honestdave.example.com/meter-readings/0",
             "path": "/readings",
             "parameters": {
@@ -102,8 +121,8 @@ def create_provenance_records(self_contained):
                 "from": "2023-09-01Z",
                 "to": "2024-09-01Z"
             },
-            "account": "/yl4Y/aV6b80fo5cnmuDDByfuEA=",
-            "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24"
+            "permissions": [edp_permission_id],
+            "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24",
         }
     )
     # EDP signs the steps
@@ -123,8 +142,8 @@ def create_provenance_records(self_contained):
             "type": "transfer",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/consumption-data",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/consumption-data/1.0",
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/0.1",
             "service": "https://api.honestdave.example.com/meter-readings/0",
             "path": "/readings",
             "parameters": {
@@ -151,20 +170,40 @@ def create_provenance_records(self_contained):
             "transfer": transfer_from_edp_step["id"]
         }
     )
+    # - Permission step to record consent to processing and future transfer
+    cap_permission_id = cap_record.add_step(
+        {
+            "type": "permission",
+            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "timestamp": "2024-10-21T09:09:10Z",    # granted in past; must match audit trail
+            "account": "dbd16978-a0a642d9aa2d95318b50e605", # different to EDP as this is the CAP's account
+            "allows": {
+                "licences": [
+                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.1"
+                ],
+                "processes": [
+                    "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations"
+                ]
+            },
+            "expires": "2025-10-21T09:09:10Z"       # 1 year
+        }
+    )
     # - Add an origin step for grid intensity data
     cap_intensity_origin_id = cap_record.add_step(
         {
             "type": "origin",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/grid-carbon-intensity",
+            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/GridCarbonIntensity",
             "origin": "https://api.carbonintensity.org.uk/",
             "originLicence": "https://creativecommons.org/licenses/by/4.0/",
             "external": True,
-            "perseus:meteringPeriod": {
-                "from": "2023-09-01Z",
-                "to": "2024-09-01Z"
+            "perseus:scheme": {
+                "meteringPeriod": {
+                    "from": "2023-09-01Z",
+                    "to": "2024-09-01Z"
+                },
+                "postcode": "CF99"
             },
-            "perseus:postcode": "CF99",
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Complete"
             }
@@ -180,6 +219,7 @@ def create_provenance_records(self_contained):
                 cap_intensity_origin_id
             ],
             "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations",
+            "permissions": [cap_permission_id],
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
             }
@@ -193,14 +233,14 @@ def create_provenance_records(self_contained):
             "of": cap_processing_id,
             "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
             "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.4",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.1",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {
                 "from": "2023-09Z",
                 "to": "2024-09Z"
             },
-            "account": "dbd16978-a0a642d9aa2d95318b50e605",
+            "permissions": [cap_permission_id],
             "transaction": "C5813265-515B-48DC-925F-832FA418F7E2"
         }
     )
@@ -223,7 +263,7 @@ def create_provenance_records(self_contained):
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
             "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.4",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.1",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {
