@@ -258,17 +258,20 @@ class Record:
             id = s["id"]
             shape = "box"
             match s["type"]:
+                case "permission":
+                    shape = "invhouse"
                 case "origin":
                     shape = "diamond"
                 case "transfer":
-                    dot.append("  \""+s["of"]+"\" -> \""+id+"\";")
+                    dot.append("  \""+s["of"]+"\" -> \""+id+"\" [label=of];")
                 case "receipt":
                     shape = "box3d"
-                    dot.append("  \""+s["transfer"]+"\" -> \""+id+"\";")
+                    dot.append("  \""+s["transfer"]+"\" -> \""+id+"\" [label=transfer];")
                 case "process":
                     shape = "parallelogram"
-                    for i in s["inputs"]:
-                        dot.append("  \""+i+"\" -> \""+id+"\";")
+            for key in ["inputs", "permissions"]:
+                for i in s.get(key, []):
+                    dot.append("  \""+i+"\" -> \""+id+"\" [label="+key+"];")
             dot.append("  \""+id+"\" [shape="+shape+",label=\""+s["type"]+"\\n"+id+"\"];")
             signer = s["_signature"]["signed"]["name"]
             if signer not in signers:
