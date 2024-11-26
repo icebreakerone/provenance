@@ -276,7 +276,7 @@ def create_provenance_records(self_contained):
                     "member": "https://directory.core.trust.ib1.org/member/81524",
                     # And that they have the expected role (cert may contain more than this role)
                     "roles": [
-                        "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-platform"
+                        "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
                     ]
                 }
             }
