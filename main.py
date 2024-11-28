@@ -95,8 +95,7 @@ def create_provenance_records(self_contained):
                 "meteringPeriod": {
                     "from": "2023-09-01Z",
                     "to": "2024-09-01Z"
-                },
-                "signatureSmartDCC": "jOEd7Yzix+v4B2HMqeoa2JRd4L9mLPlRbp98HGEpQmzuDSXipYVJDQ" # example of including an external signature?
+                }
             },
             "perseus:assurance": {
                 "dataSource": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
