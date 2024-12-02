@@ -75,7 +75,7 @@ def create_provenance_records(self_contained):
             "allows": {
                 "licences": [
                     "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
-                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/0.1"
+                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05"
                 ]
             },
             "expires": "2025-09-20T12:16:11Z"       # 1 year
@@ -111,8 +111,8 @@ def create_provenance_records(self_contained):
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "of": origin_id,
             "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/0.1",
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
             "service": "https://api.honestdave.example.com/meter-readings/0",
             "path": "/readings",
             "parameters": {
@@ -141,8 +141,8 @@ def create_provenance_records(self_contained):
             "type": "transfer",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/0.1",
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
             "service": "https://api.honestdave.example.com/meter-readings/0",
             "path": "/readings",
             "parameters": {
@@ -178,10 +178,10 @@ def create_provenance_records(self_contained):
             "account": "dbd16978-a0a642d9aa2d95318b50e605", # different to EDP as this is the CAP's account
             "allows": {
                 "licences": [
-                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.1"
+                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05"
                 ],
                 "processes": [
-                    "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations"
+                    "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05"
                 ]
             },
             "expires": "2025-10-21T09:09:10Z"       # 1 year
@@ -217,7 +217,7 @@ def create_provenance_records(self_contained):
                 cap_receipt_id,
                 cap_intensity_origin_id
             ],
-            "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations",
+            "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05",
             "permissions": [cap_permission_id],
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
@@ -231,8 +231,8 @@ def create_provenance_records(self_contained):
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "of": cap_processing_id,
             "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.1",
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {
@@ -261,8 +261,8 @@ def create_provenance_records(self_contained):
             "type": "transfer",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/0.1",
+            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
+            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {
