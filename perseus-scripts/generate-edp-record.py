@@ -66,7 +66,7 @@ if __name__ == "__main__":
             "to": details["capURL"],
             "standard": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
             "licence": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
-            "service": "https://api.honestdave.example.com/meter-readings/0",
+            "service": details["service"],
             "path": "/readings",
             "parameters": {
                 "measure": "import",

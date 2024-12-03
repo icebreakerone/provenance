@@ -9,6 +9,7 @@
     "missingData": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
     "processing": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
   },
+  "service": "https://api.example.com/meter-readings/0",
   "capURL": "https://directory.core.pilot.trust.ib1.org/member/81524",
   "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24"
 }

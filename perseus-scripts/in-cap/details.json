@@ -1,0 +1,13 @@
+{
+  "permissionGranted": "2024-10-21T09:09:10Z",
+  "permissionExpires": "2025-10-21T09:09:10Z",
+  "userAccountIdentifier": "XX8237XXXX232",
+  "periodFrom": "2023-09-01Z",
+  "periodTo": "2024-09-01Z",
+  "postcode": "CF99",
+  "assurance": {
+    "missingData": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
+  },
+  "service": "https://api.example.com/emission-report/23",
+  "transaction": "C5813265-515B-48DC-925F-832FA418F7E2"
+}
