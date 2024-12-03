@@ -1,4 +1,5 @@
 import json
+import sys
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
@@ -11,7 +12,7 @@ from ib1.provenance.certificates import (
 )
 
 
-TRUST_FRAMEWORK_URL = "https://registry.core.trust.ib1.org/trust-framework"
+TRUST_FRAMEWORK_URL = "https://registry.core.pilot.trust.ib1.org/trust-framework"
 
 
 def create_provenance_records(self_contained):
@@ -69,13 +70,13 @@ def create_provenance_records(self_contained):
     edp_permission_id = edp_record.add_step(
         {
             "type": "permission",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
             "timestamp": "2024-09-20T12:16:11Z",    # granted in past; must match audit trail
             "account": "/yl4Y/aV6b80fo5cnmuDDByfuEA=",
             "allows": {
                 "licences": [
                     "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
-                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05"
+                    "https://registry.core.pilot.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05"
                 ]
             },
             "expires": "2025-09-20T12:16:11Z"       # 1 year
@@ -85,8 +86,8 @@ def create_provenance_records(self_contained):
     origin_id = edp_record.add_step(
         {
             "type": "origin",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/Meter",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
+            "sourceType": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/source-type/Meter",
             "origin": "https://www.smartdcc.co.uk/",
             "originLicence": "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
             "external": True,
@@ -98,9 +99,9 @@ def create_provenance_records(self_contained):
                 }
             },
             "perseus:assurance": {
-                "dataSource": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
-                "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
-                "processing": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
+                "dataSource": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
+                "missingData": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
+                "processing": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
             }
         }
     )
@@ -108,11 +109,11 @@ def create_provenance_records(self_contained):
     edp_record.add_step(
         {
             "type": "transfer",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
             "of": origin_id,
-            "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
+            "to": "https://directory.core.pilot.trust.ib1.org/member/81524", # CAP
+            "standard": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
+            "licence": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
             "service": "https://api.honestdave.example.com/meter-readings/0",
             "path": "/readings",
             "parameters": {
@@ -129,6 +130,10 @@ def create_provenance_records(self_contained):
     # Get encoded data for inclusion in data response
     edp_data_attachment = edp_record_signed.encoded()
 
+    if len(sys.argv) >= 2 and sys.argv[1] == "edp-record":
+        print(json.dumps(edp_data_attachment, indent=2).encode("utf-8").decode("utf-8"))
+        sys.exit(0)
+
     # -----------------------------------------------------------------------
     # ===== CAP retrieves the data from the EDP, who includes a provenance record in the response
     cap_record = Record(TRUST_FRAMEWORK_URL, edp_data_attachment)
@@ -139,10 +144,10 @@ def create_provenance_records(self_contained):
         {
             # Same values as the transfer step added by the EDP
             "type": "transfer",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
+            "to": "https://directory.core.pilot.trust.ib1.org/member/81524", # CAP
+            "standard": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
+            "licence": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
             "service": "https://api.honestdave.example.com/meter-readings/0",
             "path": "/readings",
             "parameters": {
@@ -153,10 +158,10 @@ def create_provenance_records(self_contained):
             # Check the member it came from by checking URL in certificate
             "_signature": {
                 "signed": {
-                    "member": "https://directory.core.trust.ib1.org/member/2876152",
+                    "member": "https://directory.core.pilot.trust.ib1.org/member/2876152",
                     # And that they have the expected role (cert may contain more than this role)
                     "roles": [
-                        "https://registry.core.trust.ib1.org/scheme/perseus/role/energy-data-provider"
+                        "https://registry.core.pilot.trust.ib1.org/scheme/perseus/role/energy-data-provider"
                     ]
                 }
             }
@@ -173,15 +178,15 @@ def create_provenance_records(self_contained):
     cap_permission_id = cap_record.add_step(
         {
             "type": "permission",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
             "timestamp": "2024-10-21T09:09:10Z",    # granted in past; must match audit trail
             "account": "dbd16978-a0a642d9aa2d95318b50e605", # different to EDP as this is the CAP's account
             "allows": {
                 "licences": [
-                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05"
+                    "https://registry.core.pilot.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05"
                 ],
                 "processes": [
-                    "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05"
+                    "https://registry.core.pilot.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05"
                 ]
             },
             "expires": "2025-10-21T09:09:10Z"       # 1 year
@@ -191,8 +196,8 @@ def create_provenance_records(self_contained):
     cap_intensity_origin_id = cap_record.add_step(
         {
             "type": "origin",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/GridCarbonIntensity",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
+            "sourceType": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/source-type/GridCarbonIntensity",
             "origin": "https://api.carbonintensity.org.uk/",
             "originLicence": "https://creativecommons.org/licenses/by/4.0/",
             "external": True,
@@ -204,7 +209,7 @@ def create_provenance_records(self_contained):
                 "postcode": "CF99"
             },
             "perseus:assurance": {
-                "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Complete"
+                "missingData": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/missing-data/Complete"
             }
         }
     )
@@ -212,15 +217,15 @@ def create_provenance_records(self_contained):
     cap_processing_id = cap_record.add_step(
         {
             "type": "process",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
             "inputs": [
                 cap_receipt_id,
                 cap_intensity_origin_id
             ],
-            "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05",
+            "process": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05",
             "permissions": [cap_permission_id],
             "perseus:assurance": {
-                "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
+                "missingData": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
             }
         }
     )
@@ -228,11 +233,11 @@ def create_provenance_records(self_contained):
     cap_record.add_step(
         {
             "type": "transfer",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
             "of": cap_processing_id,
-            "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
+            "to": "https://directory.core.pilot.trust.ib1.org/member/71212388", # Bank
+            "standard": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
+            "licence": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {
@@ -249,6 +254,10 @@ def create_provenance_records(self_contained):
     # Get encoded data for inclusion in data response
     cap_data_attachment = cap_record_signed.encoded()
 
+    if len(sys.argv) >= 2 and sys.argv[1] == "cap-record":
+        print(json.dumps(cap_data_attachment, indent=2).encode("utf-8").decode("utf-8"))
+        sys.exit(0)
+
     # -----------------------------------------------------------------------
     # ===== Bank retrieves the data from the CAP, who includes a provenance record in the response
     bank_record = Record(TRUST_FRAMEWORK_URL, cap_data_attachment)
@@ -259,10 +268,10 @@ def create_provenance_records(self_contained):
         {
             # Same values as the transfer step added by the CAP
             "type": "transfer",
-            "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
-            "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
-            "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
+            "scheme": "https://registry.core.pilot.trust.ib1.org/scheme/perseus",
+            "to": "https://directory.core.pilot.trust.ib1.org/member/71212388", # Bank
+            "standard": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
+            "licence": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {
@@ -272,10 +281,10 @@ def create_provenance_records(self_contained):
             # Check the member it came from by checking URL in certificate
             "_signature": {
                 "signed": {
-                    "member": "https://directory.core.trust.ib1.org/member/81524",
+                    "member": "https://directory.core.pilot.trust.ib1.org/member/81524",
                     # And that they have the expected role (cert may contain more than this role)
                     "roles": [
-                        "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
+                        "https://registry.core.pilot.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
                     ]
                 }
             }
