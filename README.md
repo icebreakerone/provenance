@@ -14,3 +14,9 @@ sh ../scripts/certmaker.sh
 
 python3 main.py
 ```
+
+## Provenance record decoder
+
+```
+python3 decode-self-contained-provenance.py path/to/signing-CA-root.pem < record.json
+```
