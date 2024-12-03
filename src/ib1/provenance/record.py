@@ -24,7 +24,7 @@ class Record:
         if record is not None:
             if not isinstance(record.get("steps"), list):
                 raise Exception("Not an encoded Provenance record")
-            if trust_framework is not record["ib1:provenance"]:
+            if trust_framework != record["ib1:provenance"]:
                 raise Exception("Unexpected trust framework when creating Record from encoded form")
         self.trust_framework = trust_framework
         self._record = record
@@ -51,7 +51,7 @@ class Record:
         *data, sig_block = container
         container_format_version, serial, sign_timestamp, signature = sig_block
         # Check it's an understood format (multiple versions of formats may be included in a single record)
-        if container_format_version is not CURRENT_CONTAINER_FORMAT_VERSION:
+        if container_format_version != CURRENT_CONTAINER_FORMAT_VERSION:
             raise Exception("Cannot decode container format version: "+str(container_format_version))
         # Serial number must only be a number
         if str(int(serial)) != serial:
@@ -80,7 +80,7 @@ class Record:
         self._verified = None
         if not isinstance(record, Record):
             raise Exception("Not a Record object")
-        if self.trust_framework is not record.trust_framework:
+        if self.trust_framework != record.trust_framework:
             raise Exception("Incompatible trust frameworks in added Record")
         self._additional_records.append(record.encoded())
 
