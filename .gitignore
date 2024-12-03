@@ -5,3 +5,6 @@ __pycache__/
 
 certs/
 .mypy_cache/
+
+perseus-scripts/in*/
+perseus-scripts/out/

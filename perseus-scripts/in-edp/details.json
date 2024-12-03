@@ -1,0 +1,14 @@
+{
+  "permissionGranted": "2024-09-20T12:16:11Z",
+  "permissionExpires": "2025-09-20T12:16:11Z",
+  "userAccountIdentifier": "abc12734634",
+  "periodFrom": "2023-09-01Z",
+  "periodTo": "2024-09-01Z",
+  "assurance": {
+    "dataSource": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
+    "missingData": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
+    "processing": "https://registry.core.pilot.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
+  },
+  "capURL": "https://directory.core.pilot.trust.ib1.org/member/81524",
+  "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24"
+}
