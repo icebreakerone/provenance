@@ -98,9 +98,8 @@ def create_provenance_records(self_contained):
                 }
             },
             "perseus:assurance": {
-                "dataSource": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/data-source/SmartMeter",
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
-                "processing": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/processing/SmartDCCOtherUser"
+                "originMethod": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/origin-method/SmartDCCOtherUser"
             }
         }
     )
