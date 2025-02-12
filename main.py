@@ -22,16 +22,16 @@ def create_provenance_records(self_contained):
     # in the record.
     # Provides the signing CA root certificate. Each environment will have its own
     # root CA.
+    with open("certs/4-signing-ca-cert.pem", "rb") as root_ca_cert:
+        root_ca_certificate = root_ca_cert.read()
     if self_contained:
         # Use certificates from the record, with policy to include them when adding steps
         certificate_provider = CertificatesProviderSelfContainedRecord(
-            "certs/4-signing-ca-cert.pem"
+            root_ca_certificate
         )
     else:
         # Use certificates contained in a local directory, don't include certs in record
-        certificate_provider = CertificatesProviderLocal(
-            "certs/4-signing-ca-cert.pem", "certs"
-        )
+        certificate_provider = CertificatesProviderLocal(root_ca_certificate, "certs")
 
     # Create two signers representing two applications to illustrate a record
     # passed between two members. (In a real application, you'd only have one.)
@@ -52,7 +52,7 @@ def create_provenance_records(self_contained):
     signer_cap = SignerInMemory(
         certificate_provider,
         signer_cap_certs,  # list containing certificate and issuer chain
-        signer_cap_key     # private key
+        signer_cap_key,  # private key
     )
     # signer_cap = SignerLocal(certificate_provider, "certs/123456-bundle.pem", "certs/7-application-two-key.pem") # test invalid cert
     # Bank Signer
@@ -70,15 +70,15 @@ def create_provenance_records(self_contained):
         {
             "type": "permission",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "timestamp": "2024-09-20T12:16:11Z",    # granted in past; must match audit trail
+            "timestamp": "2024-09-20T12:16:11Z",  # granted in past; must match audit trail
             "account": "/yl4Y/aV6b80fo5cnmuDDByfuEA=",
             "allows": {
                 "licences": [
                     "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
-                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05"
+                    "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
                 ]
             },
-            "expires": "2025-09-20T12:16:11Z"       # 1 year
+            "expires": "2025-09-20T12:16:11Z",  # 1 year
         }
     )
     # - Origin step for the smart meter data
@@ -92,15 +92,12 @@ def create_provenance_records(self_contained):
             "external": True,
             "permissions": [edp_permission_id],
             "perseus:scheme": {
-                "meteringPeriod": {
-                    "from": "2023-09-01Z",
-                    "to": "2024-09-01Z"
-                }
+                "meteringPeriod": {"from": "2023-09-01Z", "to": "2024-09-01Z"}
             },
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Missing",
-                "originMethod": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/origin-method/SmartDCCOtherUser"
-            }
+                "originMethod": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/origin-method/SmartDCCOtherUser",
+            },
         }
     )
     # - Transfer step to send it to the CAP
@@ -109,7 +106,7 @@ def create_provenance_records(self_contained):
             "type": "transfer",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "of": origin_id,
-            "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
+            "to": "https://directory.core.trust.ib1.org/member/81524",  # CAP
             "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
             "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
             "service": "https://api.honestdave.example.com/meter-readings/0",
@@ -117,7 +114,7 @@ def create_provenance_records(self_contained):
             "parameters": {
                 "measure": "import",
                 "from": "2023-09-01Z",
-                "to": "2024-09-01Z"
+                "to": "2024-09-01Z",
             },
             "permissions": [edp_permission_id],
             "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24",
@@ -139,7 +136,7 @@ def create_provenance_records(self_contained):
             # Same values as the transfer step added by the EDP
             "type": "transfer",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "to": "https://directory.core.trust.ib1.org/member/81524", # CAP
+            "to": "https://directory.core.trust.ib1.org/member/81524",  # CAP
             "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
             "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/energy-consumption-data/2024-12-05",
             "service": "https://api.honestdave.example.com/meter-readings/0",
@@ -147,7 +144,7 @@ def create_provenance_records(self_contained):
             "parameters": {
                 "measure": "import",
                 "from": "2023-09-01Z",
-                "to": "2024-09-01Z"
+                "to": "2024-09-01Z",
             },
             # Check the member it came from by checking URL in certificate
             "_signature": {
@@ -156,34 +153,31 @@ def create_provenance_records(self_contained):
                     # And that they have the expected role (cert may contain more than this role)
                     "roles": [
                         "https://registry.core.trust.ib1.org/scheme/perseus/role/energy-data-provider"
-                    ]
+                    ],
                 }
-            }
+            },
         }
     )
     # - Add a receipt step
     cap_receipt_id = cap_record.add_step(
-        {
-            "type": "receipt",
-            "transfer": transfer_from_edp_step["id"]
-        }
+        {"type": "receipt", "transfer": transfer_from_edp_step["id"]}
     )
     # - Permission step to record consent to processing and future transfer
     cap_permission_id = cap_record.add_step(
         {
             "type": "permission",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "timestamp": "2024-10-21T09:09:10Z",    # granted in past; must match audit trail
-            "account": "dbd16978-a0a642d9aa2d95318b50e605", # different to EDP as this is the CAP's account
+            "timestamp": "2024-10-21T09:09:10Z",  # granted in past; must match audit trail
+            "account": "dbd16978-a0a642d9aa2d95318b50e605",  # different to EDP as this is the CAP's account
             "allows": {
                 "licences": [
                     "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05"
                 ],
                 "processes": [
                     "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05"
-                ]
+                ],
             },
-            "expires": "2025-10-21T09:09:10Z"       # 1 year
+            "expires": "2025-10-21T09:09:10Z",  # 1 year
         }
     )
     # - Add an origin step for grid intensity data
@@ -196,15 +190,12 @@ def create_provenance_records(self_contained):
             "originLicence": "https://creativecommons.org/licenses/by/4.0/",
             "external": True,
             "perseus:scheme": {
-                "meteringPeriod": {
-                    "from": "2023-09-01Z",
-                    "to": "2024-09-01Z"
-                },
-                "postcode": "CF99"
+                "meteringPeriod": {"from": "2023-09-01Z", "to": "2024-09-01Z"},
+                "postcode": "CF99",
             },
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Complete"
-            }
+            },
         }
     )
     # - Add a process step to combine the data from the EDP and the grid intensity API into the report
@@ -212,15 +203,12 @@ def create_provenance_records(self_contained):
         {
             "type": "process",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "inputs": [
-                cap_receipt_id,
-                cap_intensity_origin_id
-            ],
+            "inputs": [cap_receipt_id, cap_intensity_origin_id],
             "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculations/2024-12-05",
             "permissions": [cap_permission_id],
             "perseus:assurance": {
                 "missingData": "https://registry.core.trust.ib1.org/scheme/perseus/assurance/missing-data/Substituted"
-            }
+            },
         }
     )
     # - Add a transfer step to send it to the bank
@@ -229,17 +217,14 @@ def create_provenance_records(self_contained):
             "type": "transfer",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
             "of": cap_processing_id,
-            "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
+            "to": "https://directory.core.trust.ib1.org/member/71212388",  # Bank
             "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
             "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
-            "parameters": {
-                "from": "2023-09Z",
-                "to": "2024-09Z"
-            },
+            "parameters": {"from": "2023-09Z", "to": "2024-09Z"},
             "permissions": [cap_permission_id],
-            "transaction": "C5813265-515B-48DC-925F-832FA418F7E2"
+            "transaction": "C5813265-515B-48DC-925F-832FA418F7E2",
         }
     )
 
@@ -259,15 +244,12 @@ def create_provenance_records(self_contained):
             # Same values as the transfer step added by the CAP
             "type": "transfer",
             "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
-            "to": "https://directory.core.trust.ib1.org/member/71212388", # Bank
+            "to": "https://directory.core.trust.ib1.org/member/71212388",  # Bank
             "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/emissions-report/2024-12-05",
             "licence": "https://registry.core.trust.ib1.org/scheme/perseus/licence/emissions-report/2024-12-05",
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
-            "parameters": {
-                "from": "2023-09Z",
-                "to": "2024-09Z"
-            },
+            "parameters": {"from": "2023-09Z", "to": "2024-09Z"},
             # Check the member it came from by checking URL in certificate
             "_signature": {
                 "signed": {
@@ -275,18 +257,13 @@ def create_provenance_records(self_contained):
                     # And that they have the expected role (cert may contain more than this role)
                     "roles": [
                         "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
-                    ]
+                    ],
                 }
-            }
+            },
         }
     )
     # - Add a receipt step
-    bank_receipt_id = bank_record.add_step(
-        {
-            "type": "receipt",
-            "transfer": transfer_from_cap_step["id"]
-        }
-    )
+    bank_record.add_step({"type": "receipt", "transfer": transfer_from_cap_step["id"]})
 
     # Bank signs the steps
     bank_record_signed = bank_record.sign(signer_bank)
@@ -302,6 +279,7 @@ def create_provenance_records(self_contained):
     print(json.dumps(final_record.decoded(), indent=2).encode("utf-8").decode("utf-8"))
     print("----- Graphviz dot file -----")
     print(final_record.to_graphviz())
+
 
 if __name__ == "__main__":
     # Self-contained, with certificates encoded

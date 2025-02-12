@@ -1,4 +1,6 @@
-import sys, os, json
+import sys
+import os
+import json
 
 from ib1.provenance import Record
 from ib1.provenance.certificates import CertificatesProviderSelfContainedRecord
