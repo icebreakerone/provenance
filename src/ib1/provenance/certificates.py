@@ -1,5 +1,3 @@
-import json
-import base64
 import datetime
 
 from cryptography import x509

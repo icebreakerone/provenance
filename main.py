@@ -263,9 +263,7 @@ def create_provenance_records(self_contained):
         }
     )
     # - Add a receipt step
-    bank_receipt_id = bank_record.add_step(
-        {"type": "receipt", "transfer": transfer_from_cap_step["id"]}
-    )
+    bank_record.add_step({"type": "receipt", "transfer": transfer_from_cap_step["id"]})
 
     # Bank signs the steps
     bank_record_signed = bank_record.sign(signer_bank)
