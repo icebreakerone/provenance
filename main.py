@@ -116,8 +116,7 @@ def create_provenance_records(self_contained):
                 "from": "2023-09-01Z",
                 "to": "2024-09-01Z",
             },
-            "permissions": [edp_permission_id],
-            "transaction": "C25D0B85-B7C4-4543-B058-7DA57B8D9A24",
+            "permissions": [edp_permission_id]
         }
     )
     # EDP signs the steps
@@ -223,8 +222,7 @@ def create_provenance_records(self_contained):
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {"from": "2023-09Z", "to": "2024-09Z"},
-            "permissions": [cap_permission_id],
-            "transaction": "C5813265-515B-48DC-925F-832FA418F7E2",
+            "permissions": [cap_permission_id]
         }
     )
 
