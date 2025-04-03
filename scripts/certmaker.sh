@@ -35,7 +35,7 @@ openssl x509 -req -in 5-signing-issuer-csr.pem -out 5-signing-issuer-ca.pem -ext
 # 6. Honest Dave's Accurate Meter Reading Co (roles: energy-data-provider)
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 6-honest-daves-accurate-meter-readings-key.pem
 openssl req -new -key 6-honest-daves-accurate-meter-readings-key.pem -out 6-honest-daves-accurate-meter-readings-csr.pem \
-    -subj "/C=GB/ST=London/O=Honest Dave's Accurate Meter Reading Co/CN=https:\/\/directory.core.trust.ib1.org\/member\/2876152"
+    -subj "/C=GB/ST=London/O=Honest Dave's Accurate Meter Reading Co/CN=https:\/\/directory.core.trust.ib1.org\/application\/38936455"
 openssl x509 -req -in 6-honest-daves-accurate-meter-readings-csr.pem -out 6-honest-daves-accurate-meter-readings-cert.pem -extfile ../scripts/roles.cnf -extensions roles1 \
     -CA 5-signing-issuer-ca.pem -CAkey 5-signing-issuer-key.pem -days 365 -set_serial 123456
 cat 6-honest-daves-accurate-meter-readings-cert.pem 5-signing-issuer-ca.pem > 123456-bundle.pem
@@ -43,7 +43,7 @@ cat 6-honest-daves-accurate-meter-readings-cert.pem 5-signing-issuer-ca.pem > 12
 # 7. Emission Calculations 4 U (roles: carbon-accounting-platform)
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 7-emission-calculations-4-u-key.pem
 openssl req -new -key 7-emission-calculations-4-u-key.pem -out 7-emission-calculations-4-u-csr.pem \
-    -subj "/C=GB/ST=London/O=Emission Calculations 4 U/CN=https:\/\/directory.core.trust.ib1.org\/member\/81524"
+    -subj "/C=GB/ST=London/O=Emission Calculations 4 U/CN=https:\/\/directory.core.trust.ib1.org\/application\/26241"
 openssl x509 -req -in 7-emission-calculations-4-u-csr.pem -out 7-emission-calculations-4-u-cert.pem -extfile ../scripts/roles.cnf -extensions roles2 \
     -CA 5-signing-issuer-ca.pem -CAkey 5-signing-issuer-key.pem -days 365 -set_serial 98765
 cat 7-emission-calculations-4-u-cert.pem 5-signing-issuer-ca.pem > 98765-bundle.pem
@@ -51,7 +51,7 @@ cat 7-emission-calculations-4-u-cert.pem 5-signing-issuer-ca.pem > 98765-bundle.
 # 9. Green Bank of London (roles: finance-provider, auditor)
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 8-green-bank-of-london-key.pem
 openssl req -new -key 8-green-bank-of-london-key.pem -out 8-green-bank-of-london-csr.pem \
-    -subj "/C=GB/ST=London/O=Green Bank of London/CN=https:\/\/directory.core.trust.ib1.org\/member\/71212388"
+    -subj "/C=GB/ST=London/O=Green Bank of London/CN=https:\/\/directory.core.trust.ib1.org\/application\/261551511"
 openssl x509 -req -in 8-green-bank-of-london-csr.pem -out 8-green-bank-of-london-cert.pem -extfile ../scripts/roles.cnf -extensions roles3 \
     -CA 5-signing-issuer-ca.pem -CAkey 5-signing-issuer-key.pem -days 365 -set_serial 88889999
 cat 8-green-bank-of-london-cert.pem 5-signing-issuer-ca.pem > 88889999-bundle.pem

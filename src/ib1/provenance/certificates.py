@@ -10,7 +10,7 @@ import asn1crypto.core as asn1
 # ---------------------------------------------------------------------------
 
 OID_IB1_ROLES = x509.ObjectIdentifier("1.3.6.1.4.1.62329.1.1")
-OID_IB1_APPLICATION = x509.ObjectIdentifier("1.3.6.1.4.1.62329.1.2")
+OID_IB1_MEMBER = x509.ObjectIdentifier("1.3.6.1.4.1.62329.1.3")
 
 
 class CertExtUTF8Sequence(asn1.SequenceOf):
@@ -21,7 +21,7 @@ class SigningCertificate:
     def __init__(self, x509_certificate: x509.Certificate):
         self._x509_certificate = x509_certificate
 
-    def subject(self):
+    def application(self):
         san_extension = self._x509_certificate.extensions.get_extension_for_oid(
             ExtensionOID.SUBJECT_ALTERNATIVE_NAME
         )
@@ -37,8 +37,8 @@ class SigningCertificate:
             NameOID.ORGANIZATION_NAME
         )[0].value
 
-    def application(self):
-        value = self._x509_certificate.extensions.get_extension_for_oid(OID_IB1_APPLICATION).value.value  # type: ignore [attr-defined]
+    def member(self):
+        value = self._x509_certificate.extensions.get_extension_for_oid(OID_IB1_MEMBER).value.value  # type: ignore [attr-defined]
         return str(asn1.UTF8String.load(value))
 
     def roles(self):
@@ -72,7 +72,7 @@ class CertificateProviderBase:
         # Return information about the signer
         cert_info = SigningCertificate(signing_cert)
         return {
-            "member": cert_info.subject(),
+            "member": cert_info.member(),
             "name": cert_info.organisation_name(),
             "application": cert_info.application(),
             "roles": cert_info.roles(),
