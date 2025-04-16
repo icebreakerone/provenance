@@ -9,7 +9,7 @@ packages = [{include = "ib1", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-cryptography = "^43.0.1"
+cryptography = ">=43.0.1,<45.0.0"
 asn1crypto = "^1.5.1"
 
 
