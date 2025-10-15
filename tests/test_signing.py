@@ -1,11 +1,9 @@
 import os
 import tempfile
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
 
 from ib1.provenance.signing import SignerInMemory, SignerFiles, SignerKMS
 from ib1.provenance.certificates import CertificateProviderBase as CertificateProvider
@@ -201,8 +199,8 @@ class TestSignerKMS:
 
     def test_signer_kms_initialization_with_boto3(self):
         """Test SignerKMS initialization when boto3 is available"""
-        # Mock the import inside the __init__ method
-        with patch("builtins.__import__", side_effect=lambda name, *args, **kwargs: Mock() if name == "boto3" else __import__(name, *args, **kwargs)):
+        # Mock importlib.util.find_spec to return a spec (indicating boto3 is available)
+        with patch("importlib.util.find_spec", return_value=Mock()):
             signer = SignerKMS(
                 self.certificate_provider,
                 self.certificates,
@@ -220,12 +218,8 @@ class TestSignerKMS:
 
     def test_signer_kms_initialization_without_boto3(self):
         """Test SignerKMS initialization when boto3 is not available"""
-        def mock_import(name, *args, **kwargs):
-            if name == "boto3":
-                raise ImportError("No module named 'boto3'")
-            return __import__(name, *args, **kwargs)
-        
-        with patch("builtins.__import__", side_effect=mock_import):
+        # Mock importlib.util.find_spec to return None (indicating boto3 is not available)
+        with patch("importlib.util.find_spec", return_value=None):
             with pytest.raises(ImportError, match="boto3 is required for SignerKMS"):
                 SignerKMS(
                     self.certificate_provider,
@@ -236,7 +230,7 @@ class TestSignerKMS:
 
     def test_signer_kms_missing_kms_client(self):
         """Test SignerKMS with None kms_client"""
-        with patch("builtins.__import__", side_effect=lambda name, *args, **kwargs: Mock() if name == "boto3" else __import__(name, *args, **kwargs)):
+        with patch("importlib.util.find_spec", return_value=Mock()):
             with pytest.raises(
                 ValueError, match="kms_client and key_id are required for SignerKMS"
             ):
@@ -246,7 +240,7 @@ class TestSignerKMS:
 
     def test_signer_kms_missing_key_id(self):
         """Test SignerKMS with None key_id"""
-        with patch("builtins.__import__", side_effect=lambda name, *args, **kwargs: Mock() if name == "boto3" else __import__(name, *args, **kwargs)):
+        with patch("importlib.util.find_spec", return_value=Mock()):
             with pytest.raises(
                 ValueError, match="kms_client and key_id are required for SignerKMS"
             ):
@@ -259,7 +253,7 @@ class TestSignerKMS:
 
     def test_signer_kms_sign(self):
         """Test SignerKMS sign method"""
-        with patch("builtins.__import__", side_effect=lambda name, *args, **kwargs: Mock() if name == "boto3" else __import__(name, *args, **kwargs)):
+        with patch("importlib.util.find_spec", return_value=Mock()):
             signer = SignerKMS(
                 self.certificate_provider,
                 self.certificates,
@@ -288,7 +282,7 @@ class TestSignerKMS:
 
     def test_signer_kms_inherits_methods(self):
         """Test that SignerKMS inherits methods from SignerInMemory"""
-        with patch("builtins.__import__", side_effect=lambda name, *args, **kwargs: Mock() if name == "boto3" else __import__(name, *args, **kwargs)):
+        with patch("importlib.util.find_spec", return_value=Mock()):
             signer = SignerKMS(
                 self.certificate_provider,
                 self.certificates,
@@ -341,7 +335,7 @@ class TestSignerIntegration:
 
             # Test SignerKMS
             mock_kms_client = Mock()
-            with patch("builtins.__import__", side_effect=lambda name, *args, **kwargs: Mock() if name == "boto3" else __import__(name, *args, **kwargs)):
+            with patch("importlib.util.find_spec", return_value=Mock()):
                 signer_kms = SignerKMS(
                     certificate_provider, certificates, mock_kms_client, "test-key"
                 )

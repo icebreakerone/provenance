@@ -1,3 +1,4 @@
+import importlib.util
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
@@ -54,9 +55,7 @@ class SignerKMS(SignerInMemory):
         kms_client,
         key_id,
     ):
-        try:
-            import boto3
-        except ImportError:
+        if importlib.util.find_spec("boto3") is None:
             raise ImportError("boto3 is required for SignerKMS")
         if kms_client is None or key_id is None:
             raise ValueError("kms_client and key_id are required for SignerKMS")
