@@ -18,6 +18,9 @@ then
     exit 1
 fi
 
+# Create certs directory if it doesn't exist
+mkdir -p certs
+
 # 4. Core Trust Framework Signing CA
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 4-signing-ca-key.pem
 openssl req -new -key 4-signing-ca-key.pem -out 4-signing-ca-csr.pem \
@@ -32,32 +35,46 @@ openssl req -new -key 5-signing-issuer-key.pem -out 5-signing-issuer-csr.pem \
 openssl x509 -req -in 5-signing-issuer-csr.pem -out 5-signing-issuer-ca.pem -extfile ../scripts/extensions.cnf \
     -extensions v3_intermediate_ca -CA 4-signing-ca-cert.pem -CAkey 4-signing-ca-key.pem -days 365
 
-# 6. Honest Dave's Accurate Meter Reading Co (roles: energy-data-provider)
-openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 6-honest-daves-accurate-meter-readings-key.pem
-openssl req -new -key 6-honest-daves-accurate-meter-readings-key.pem -out 6-honest-daves-accurate-meter-readings-csr.pem \
-    -subj "/C=GB/ST=London/O=Honest Dave's Accurate Meter Reading Co/CN=https:\/\/directory.core.trust.ib1.org\/application\/38936455"
-openssl x509 -req -in 6-honest-daves-accurate-meter-readings-csr.pem -out 6-honest-daves-accurate-meter-readings-cert.pem -extfile ../scripts/roles.cnf -extensions roles1 \
+# 6. Smart Meter Reading Co (roles: energy-data-provider)
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 6-smart-meter-readings-key.pem
+openssl req -new -key 6-smart-meter-readings-key.pem -out 6-smart-meter-readings-csr.pem \
+    -subj "/C=GB/ST=London/O=Smart Meter Reading Co/CN=https:\/\/directory.core.trust.ib1.org\/application\/38936455"
+openssl x509 -req -in 6-smart-meter-readings-csr.pem -out 6-smart-meter-readings-cert.pem -extfile ../scripts/roles.cnf -extensions roles1 \
     -CA 5-signing-issuer-ca.pem -CAkey 5-signing-issuer-key.pem -days 365 -set_serial 123456
-cat 6-honest-daves-accurate-meter-readings-cert.pem 5-signing-issuer-ca.pem > 123456-bundle.pem
+cat 6-smart-meter-readings-cert.pem 5-signing-issuer-ca.pem > 123456-bundle.pem
 
-# 7. Emission Calculations 4 U (roles: carbon-accounting-platform)
-openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 7-emission-calculations-4-u-key.pem
-openssl req -new -key 7-emission-calculations-4-u-key.pem -out 7-emission-calculations-4-u-csr.pem \
-    -subj "/C=GB/ST=London/O=Emission Calculations 4 U/CN=https:\/\/directory.core.trust.ib1.org\/application\/26241"
-openssl x509 -req -in 7-emission-calculations-4-u-csr.pem -out 7-emission-calculations-4-u-cert.pem -extfile ../scripts/roles.cnf -extensions roles2 \
+# 7. Carbon Accounting Platform (roles: carbon-accounting-platform)
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 7-carbon-accounting-platform-key.pem
+openssl req -new -key 7-carbon-accounting-platform-key.pem -out 7-carbon-accounting-platform-csr.pem \
+    -subj "/C=GB/ST=London/O=Carbon Accounting Platform/CN=https:\/\/directory.core.trust.ib1.org\/application\/26241"
+openssl x509 -req -in 7-carbon-accounting-platform-csr.pem -out 7-carbon-accounting-platform-cert.pem -extfile ../scripts/roles.cnf -extensions roles2 \
     -CA 5-signing-issuer-ca.pem -CAkey 5-signing-issuer-key.pem -days 365 -set_serial 98765
-cat 7-emission-calculations-4-u-cert.pem 5-signing-issuer-ca.pem > 98765-bundle.pem
+cat 7-carbon-accounting-platform-cert.pem 5-signing-issuer-ca.pem > 98765-bundle.pem
 
-# 9. Green Bank of London (roles: finance-provider, auditor)
-openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 8-green-bank-of-london-key.pem
-openssl req -new -key 8-green-bank-of-london-key.pem -out 8-green-bank-of-london-csr.pem \
-    -subj "/C=GB/ST=London/O=Green Bank of London/CN=https:\/\/directory.core.trust.ib1.org\/application\/261551511"
-openssl x509 -req -in 8-green-bank-of-london-csr.pem -out 8-green-bank-of-london-cert.pem -extfile ../scripts/roles.cnf -extensions roles3 \
+# 8. Financial Service Provider (roles: finance-provider, auditor)
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out 8-financial-service-provider-key.pem
+openssl req -new -key 8-financial-service-provider-key.pem -out 8-financial-service-provider-csr.pem \
+    -subj "/C=GB/ST=London/O=Financial Service Provider/CN=https:\/\/directory.core.trust.ib1.org\/application\/261551511"
+openssl x509 -req -in 8-financial-service-provider-csr.pem -out 8-financial-service-provider-cert.pem -extfile ../scripts/roles.cnf -extensions roles3 \
     -CA 5-signing-issuer-ca.pem -CAkey 5-signing-issuer-key.pem -days 365 -set_serial 88889999
-cat 8-green-bank-of-london-cert.pem 5-signing-issuer-ca.pem > 88889999-bundle.pem
+cat 8-financial-service-provider-cert.pem 5-signing-issuer-ca.pem > 88889999-bundle.pem
+
+echo "Certificates created successfully in the certs/ directory!"
+echo ""
+echo "Certificate files created:"
+echo "  - 123456-bundle.pem (Smart Meter Reading Co - EDP)"
+echo "  - 6-smart-meter-readings-key.pem"
+echo "  - 98765-bundle.pem (Carbon Accounting Platform - CAP)"
+echo "  - 7-carbon-accounting-platform-key.pem"
+echo "  - 88889999-bundle.pem (Financial Service Provider - Bank)"
+echo "  - 8-financial-service-provider-key.pem"
+echo ""
+echo "Root CA files:"
+echo "  - 4-signing-ca-cert.pem (Root CA certificate)"
+echo "  - 5-signing-issuer-ca.pem (Intermediate CA certificate)"
 
 # openssl x509 -in 4-signing-ca-cert.pem -noout -text
 # openssl x509 -in 5-signing-issuer-ca.pem -noout -text
-# openssl x509 -in 6-honest-daves-accurate-meter-readings-cert.pem -noout -text
-# openssl x509 -in 7-emission-calculations-4-u-cert.pem -noout -text
-# openssl x509 -in 8-green-bank-of-london-cert.pem -noout -text
+# openssl x509 -in 6-smart-meter-readings-cert.pem -noout -text
+# openssl x509 -in 7-carbon-accounting-platform-cert.pem -noout -text
+# openssl x509 -in 8-financial-service-provider-cert.pem -noout -text
