@@ -80,7 +80,7 @@ class Record:
         data_for_signing = self._data_for_signing(
             data, [str(container_format_version), serial, sign_timestamp]
         )
-        signer_info = certificate_provider._verify(
+        signer_info = certificate_provider.verify(
             certificates_from_record,
             serial,
             sign_timestamp,
