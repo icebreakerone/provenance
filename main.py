@@ -42,12 +42,12 @@ def create_provenance_records(self_contained):
     signer_edp = SignerFiles(
         certificate_provider,
         "certs/123456-bundle.pem",
-        "certs/6-honest-daves-accurate-meter-readings-key.pem",
+        "certs/6-smart-meter-readings-key.pem",
     )
-    # Carbon Accounting Platform Signer using in-memory Python objects:
+    # Carbon Accounting Provider Signer using in-memory Python objects:
     with open("certs/98765-bundle.pem", "rb") as certs:
         signer_cap_certs = x509.load_pem_x509_certificates(certs.read())
-    with open("certs/7-emission-calculations-4-u-key.pem", "rb") as key:
+    with open("certs/7-carbon-accounting-provider-key.pem", "rb") as key:
         signer_cap_key = serialization.load_pem_private_key(key.read(), password=None)
     signer_cap = SignerInMemory(
         certificate_provider,
@@ -59,7 +59,7 @@ def create_provenance_records(self_contained):
     signer_bank = SignerFiles(
         certificate_provider,
         "certs/88889999-bundle.pem",
-        "certs/8-green-bank-of-london-key.pem",
+        "certs/8-financial-service-provider-key.pem",
     )
 
     # -----------------------------------------------------------------------
@@ -116,7 +116,7 @@ def create_provenance_records(self_contained):
                 "from": "2023-09-01Z",
                 "to": "2024-09-01Z",
             },
-            "permissions": [edp_permission_id]
+            "permissions": [edp_permission_id],
         }
     )
     # EDP signs the steps
@@ -222,7 +222,7 @@ def create_provenance_records(self_contained):
             "service": "https://api.emmissions4u.example.com/emission-report/23",
             "path": "/emissions",
             "parameters": {"from": "2023-09Z", "to": "2024-09Z"},
-            "permissions": [cap_permission_id]
+            "permissions": [cap_permission_id],
         }
     )
 

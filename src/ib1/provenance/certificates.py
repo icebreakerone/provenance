@@ -51,9 +51,7 @@ class CertificateProviderBase:
         self.policy_include_certificates_in_record = self_contained
         self._ca_store = Store(x509.load_pem_x509_certificates(root_ca_certificate))
 
-    def _verify(
-        self, certificates_from_record, serial, sign_timestamp, data, signature
-    ):
+    def verify(self, certificates_from_record, serial, sign_timestamp, data, signature):
         certs = self.certificates_for_serial(certificates_from_record, serial)
         # first certificate in file is signing certificate
         signing_cert, *issuer_chain = certs
