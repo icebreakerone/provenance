@@ -64,4 +64,9 @@ class SignerKMS(SignerInMemory):
         super().__init__(certificate_provider, certificates)
 
     def sign(self, data):
-        return self._kms_client.sign(KeyId=self._key_id, Message=data)
+        return self._kms_client.sign(
+            KeyId=self._key_id,
+            Message=data,
+            MessageType="RAW",
+            SigningAlgorithm="ECDSA_SHA_256",
+        )

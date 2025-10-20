@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ib1-provenance"
-version = "0.5.1"
+version = "0.5.2"
 description = "Tools to encode, decode, and sign provenance data"
 authors = ["Ben Summers <ben.summers@icebreakerone.org>"]
 readme = "README.md"
