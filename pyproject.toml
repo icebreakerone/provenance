@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ib1-provenance"
-version = "0.5.0"
+version = "0.5.1"
 description = "Tools to encode, decode, and sign provenance data"
 authors = ["Ben Summers <ben.summers@icebreakerone.org>"]
 readme = "README.md"
@@ -11,6 +11,7 @@ packages = [{include = "ib1", from = "src"}]
 python = "^3.10"
 cryptography = "^43.0.1"
 asn1crypto = "^1.5.1"
+boto3 = { version = "^1.35.0", optional = true }
 
 [tool.poetry.extras]
 kms = ["boto3"]
