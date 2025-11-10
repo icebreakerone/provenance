@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
@@ -64,9 +65,14 @@ class SignerKMS(SignerInMemory):
         super().__init__(certificate_provider, certificates)
 
     def sign(self, data):
-        return self._kms_client.sign(
+        # AWS KMS has a 4096 byte limit for MessageType="RAW"
+        # For larger messages, we need to hash first and use MessageType="DIGEST"
+        # Hash the data using SHA-256 (matching the ECDSA_SHA_256 signing algorithm)
+        digest = hashlib.sha256(data).digest()
+        resp = self._kms_client.sign(
             KeyId=self._key_id,
-            Message=data,
-            MessageType="RAW",
+            Message=digest,
+            MessageType="DIGEST",
             SigningAlgorithm="ECDSA_SHA_256",
         )
+        return resp["Signature"]

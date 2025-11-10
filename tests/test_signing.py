@@ -253,6 +253,7 @@ class TestSignerKMS:
 
     def test_signer_kms_sign(self):
         """Test SignerKMS sign method"""
+        import hashlib
         with patch("importlib.util.find_spec", return_value=Mock()):
             signer = SignerKMS(
                 self.certificate_provider,
@@ -272,13 +273,19 @@ class TestSignerKMS:
             test_data = b"test data to sign"
             result = signer.sign(test_data)
 
-            # Verify KMS client was called correctly
+            # Calculate expected digest (SHA-256 hash of test_data)
+            expected_digest = hashlib.sha256(test_data).digest()
+
+            # Verify KMS client was called correctly with digest and MessageType="DIGEST"
             self.mock_kms_client.sign.assert_called_once_with(
-                KeyId=self.key_id, Message=test_data
+                KeyId=self.key_id,
+                Message=expected_digest,
+                MessageType="DIGEST",
+                SigningAlgorithm="ECDSA_SHA_256",
             )
 
             # Verify result
-            assert result == mock_response
+            assert result == mock_response["Signature"]
 
     def test_signer_kms_inherits_methods(self):
         """Test that SignerKMS inherits methods from SignerInMemory"""
