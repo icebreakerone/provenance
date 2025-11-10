@@ -20,3 +20,10 @@ python3 main.py
 ```
 python3 decode-self-contained-provenance.py path/to/signing-CA-root.pem < record.json
 ```
+
+## Publish the library
+
+```
+poetry build
+poetry publish
+```
