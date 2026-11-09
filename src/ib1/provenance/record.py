@@ -1,16 +1,15 @@
 import base64
 import binascii
-import collections
 import copy
 import datetime
 import json
-import re
 
 from cryptography.hazmat.primitives import serialization
 
 from .certificates import SERIAL_PATTERN
 from .exceptions import ProvenanceError, ValidationError, VerificationError
 from .identifier import globally_unique_step_identifier
+from . import validation
 
 
 CURRENT_CONTAINER_FORMAT_VERSION = 0
@@ -18,8 +17,7 @@ CURRENT_CONTAINER_FORMAT_VERSION = 0
 # The specification does not allow any other top level properties
 TOP_LEVEL_KEYS = {"ib1:provenance", "origins", "steps", "certificates"}
 
-# ISO 8601 in UTC with Z, optionally with fractional seconds
-TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
+TIMESTAMP_PATTERN = validation.TIMESTAMP_PATTERN
 
 
 class Record:
@@ -78,7 +76,7 @@ class Record:
             raise VerificationError(
                 "origins property does not match origin steps in record"
             )
-        duplicates = self._duplicate_ids(s.get("id") for s in steps)
+        duplicates = self._duplicate_ids(steps)
         if duplicates:
             raise VerificationError(
                 "Step ids are used more than once: " + ", ".join(duplicates)
@@ -186,9 +184,8 @@ class Record:
         return step
 
     @staticmethod
-    def _duplicate_ids(ids):
-        counts = collections.Counter(ids)
-        return sorted(str(i) for i, n in counts.items() if n > 1)
+    def _duplicate_ids(steps):
+        return validation.duplicate_ids(steps)
 
     def add_record(self, record):
         self._signed = False
@@ -210,12 +207,11 @@ class Record:
             )
         id = globally_unique_step_identifier()
         # Step timestamp
-        # TODO: Verify timestamp is in the right format (but signing cert does not need to be valid at that time?)
         timestamp = step.pop("timestamp", None)
         if not timestamp:
             timestamp = self._timestamp_now_iso8601()
         # Step type
-        step_type = step.pop("type")
+        step_type = step.pop("type", None)
         # No keys with _ prefix allowed
         prohibited_keys_present = list(filter(lambda k: k.startswith("_"), step.keys()))
         if prohibited_keys_present:
@@ -223,11 +219,23 @@ class Record:
                 "Step may not contain keys beginning with an underscore. Prohibited keys present: "
                 + (", ".join(prohibited_keys_present))
             )
+        new_step = {"id": id, "timestamp": timestamp, "type": step_type, **step}
+        problems = validation.step_problems(new_step, label="New step")
+        if problems:
+            raise ValidationError("; ".join(problems))
         # Add to list of steps pending addition
-        self._additional_steps.append(
-            {"id": id, "timestamp": timestamp, "type": step_type, **step}
-        )
+        self._additional_steps.append(new_step)
         return id
+
+    def validate(self):
+        """Return a list of structural problems in a verified record.
+
+        An empty list means no problems were found. This does not raise, so a
+        record signed by another participant can be checked and the problems
+        reported, without stopping it being used.
+        """
+        self._require_verified()
+        return validation.record_problems(self._verified)
 
     def find_step(self, required_values):
         steps = self.filter_steps(required_values)
@@ -303,6 +311,11 @@ class Record:
             output.append(r["steps"])  # signed and encoded
         for s in self._additional_steps:
             output.append(self._encode_step(s))  # unencoded, not signed
+        # Check the record before signing it
+        origins = []
+        all_steps = []
+        self._gather_steps(output, origins, all_steps)
+        self._check_before_signing(all_steps)
         serial = signer.serial()
         sign_timestamp = self._timestamp_now_iso8601()
         data_for_signing = self._data_for_signing(
@@ -331,15 +344,6 @@ class Record:
                     certificates[str(c.serial_number)] = [
                         c.public_bytes(serialization.Encoding.PEM).decode("utf-8")
                     ]
-        origins = []
-        ids = []
-        self._gather_origins(output, origins, ids)
-        duplicates = self._duplicate_ids(ids)
-        if duplicates:
-            raise ValidationError(
-                "Step ids are used more than once, was the same record added twice? "
-                + ", ".join(duplicates)
-            )
         encoded = {
             "ib1:provenance": self.trust_framework,
             "origins": origins,
@@ -349,16 +353,36 @@ class Record:
             encoded["certificates"] = certificates
         return Record(self.trust_framework, encoded)
 
-    def _gather_origins(self, container, origins, ids):
-        *data, sig_block = container
+    def _gather_steps(self, data, origins, steps):
+        """Decode the steps in step list data (without its signature element)."""
         for e in data:
             if not isinstance(e, str):
-                self._gather_origins(e, origins, ids)
+                self._gather_steps(e[:-1], origins, steps)
             else:
                 decoded_step = self._decode_step(e)
-                ids.append(decoded_step.get("id"))
+                steps.append(decoded_step)
                 if decoded_step.get("type") == "origin":
                     origins.append(decoded_step.get("id"))
+
+    def _check_before_signing(self, all_steps):
+        # Only the steps added by this signer are checked in detail. Steps in
+        # included records were signed by other participants and can't be changed.
+        duplicates = self._duplicate_ids(all_steps)
+        if duplicates:
+            raise ValidationError(
+                "Step ids are used more than once, was the same record added twice? "
+                + ", ".join(duplicates)
+            )
+        if not any(s.get("type") == "origin" for s in all_steps):
+            raise ValidationError(
+                "A Provenance record must contain at least one origin step"
+            )
+        steps_by_id = {s.get("id"): s for s in all_steps}
+        problems = []
+        for step in self._additional_steps:
+            problems.extend(validation.reference_problems(step, steps_by_id))
+        if problems:
+            raise ValidationError("; ".join(problems))
 
     def _encode_step(self, step):
         return base64.urlsafe_b64encode(
