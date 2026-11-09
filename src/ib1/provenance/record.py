@@ -1,19 +1,28 @@
 import base64
-import json
+import binascii
+import collections
 import copy
 import datetime
+import json
+import re
 
 from cryptography.hazmat.primitives import serialization
 
+from .certificates import SERIAL_PATTERN
 from .exceptions import ProvenanceError, ValidationError, VerificationError
 from .identifier import globally_unique_step_identifier
 
 
 CURRENT_CONTAINER_FORMAT_VERSION = 0
 
+# The specification does not allow any other top level properties
+TOP_LEVEL_KEYS = {"ib1:provenance", "origins", "steps", "certificates"}
+
+# ISO 8601 in UTC with Z, optionally with fractional seconds
+TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
+
 
 class Record:
-
     # data attributes:
     #   _record -- signed record as output from JSON decoding
     #   _additional_records -- array of signed records to add to the record
@@ -23,12 +32,24 @@ class Record:
 
     def __init__(self, trust_framework, record=None):
         if record is not None:
-            if not isinstance(record.get("steps"), list):
+            if not isinstance(record, dict) or not isinstance(
+                record.get("steps"), list
+            ):
                 raise ValidationError("Not an encoded Provenance record")
-            if trust_framework != record["ib1:provenance"]:
+            if trust_framework != record.get("ib1:provenance"):
                 raise ValidationError(
                     "Unexpected trust framework when creating Record from encoded form"
                 )
+            unknown_keys = sorted(set(record) - TOP_LEVEL_KEYS)
+            if unknown_keys:
+                raise ValidationError(
+                    "Provenance record has unknown top level properties: "
+                    + ", ".join(unknown_keys)
+                )
+            if not isinstance(record.get("origins"), list):
+                raise ValidationError("Provenance record origins must be a list")
+            if not isinstance(record.get("certificates", {}), dict):
+                raise ValidationError("Provenance record certificates must be a map")
         self.trust_framework = trust_framework
         self._record = record
         self._additional_records = []
@@ -54,7 +75,14 @@ class Record:
             signer_stack,
         )
         if self._record["origins"] != origins:
-            raise VerificationError("origins property does not match origin steps in record")
+            raise VerificationError(
+                "origins property does not match origin steps in record"
+            )
+        duplicates = self._duplicate_ids(s.get("id") for s in steps)
+        if duplicates:
+            raise VerificationError(
+                "Step ids are used more than once: " + ", ".join(duplicates)
+            )
         self._verified = steps
 
     def _verify_record_container(
@@ -66,6 +94,7 @@ class Record:
         origins,
         signer_stack,
     ):
+        self._check_container_shape(container)
         *data, sig_block = container
         container_format_version, serial, sign_timestamp, signature = sig_block
         # Check it's an understood format (multiple versions of formats may be included in a single record)
@@ -74,9 +103,6 @@ class Record:
                 "Cannot decode container format version: "
                 + str(container_format_version)
             )
-        # Serial number must only be a number
-        if str(int(serial)) != serial:
-            raise VerificationError("Bad certificate serial number in record: " + serial)
         # Check signatures at this level and get signer information
         data_for_signing = self._data_for_signing(
             data, [str(container_format_version), serial, sign_timestamp]
@@ -86,7 +112,7 @@ class Record:
             serial,
             sign_timestamp,
             data_for_signing.encode("utf-8"),
-            base64.urlsafe_b64decode(signature),
+            self._b64decode(signature, "Signature"),
         )
         # Recurse into signed data, collecting decoded steps and adding signer info
         for e in data:
@@ -102,14 +128,67 @@ class Record:
                 )
                 del signer_stack[-1]
             else:
-                decoded_step = json.loads(base64.urlsafe_b64decode(e))
-                if decoded_step["type"] == "origin":
-                    origins.append(decoded_step["id"])
+                decoded_step = self._decode_step(e)
+                if decoded_step.get("type") == "origin":
+                    origins.append(decoded_step.get("id"))
                 decoded_step["_signature"] = {
                     "signed": signer_info,
                     "includedBy": copy.copy(signer_stack),
                 }
                 steps.append(decoded_step)
+
+    @staticmethod
+    def _check_container_shape(container):
+        """Check a Signed Step List has the structure the specification requires."""
+        if not isinstance(container, list) or len(container) < 2:
+            raise VerificationError(
+                "A Signed Step List must contain at least one element and a signature"
+            )
+        *data, sig_block = container
+        for e in data:
+            if not isinstance(e, (str, list)):
+                raise VerificationError(
+                    "A Signed Step List may only contain steps and other Signed Step Lists"
+                )
+        if not isinstance(sig_block, list) or len(sig_block) != 4:
+            raise VerificationError("A signature element must be an array of 4 items")
+        version, serial, sign_timestamp, signature = sig_block
+        if not isinstance(version, int) or isinstance(version, bool):
+            raise VerificationError("Container format version must be a number")
+        if not isinstance(serial, str) or not SERIAL_PATTERN.match(serial):
+            raise VerificationError(
+                f"Bad certificate serial number in record: {serial!r}"
+            )
+        if not isinstance(sign_timestamp, str) or not TIMESTAMP_PATTERN.match(
+            sign_timestamp
+        ):
+            raise VerificationError(
+                f"Bad signing timestamp in record: {sign_timestamp!r}"
+            )
+        if not isinstance(signature, str):
+            raise VerificationError("Signature must be a string")
+
+    @staticmethod
+    def _b64decode(value, what):
+        try:
+            # Accept values with or without padding
+            return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+        except (binascii.Error, ValueError):
+            raise VerificationError(f"{what} is not base64url encoded") from None
+
+    def _decode_step(self, encoded):
+        try:
+            step = json.loads(self._b64decode(encoded, "Step"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            raise VerificationError("Step is not encoded JSON") from None
+        if not isinstance(step, dict):
+            raise VerificationError("Step is not a JSON object")
+        return step
+
+    @staticmethod
+    def _duplicate_ids(ids):
+        counts = collections.Counter(ids)
+        return sorted(str(i) for i, n in counts.items() if n > 1)
 
     def add_record(self, record):
         self._signed = False
@@ -159,6 +238,28 @@ class Record:
                 f"More than one step matches required values {required_values}"
             )
         return steps[0]
+
+    def require_signer(self, step_id, *, member=None, application=None, role=None):
+        """Check who signed a step and return the step.
+
+        Raises VerificationError unless the step was signed by a certificate with
+        the given member URL, application URL and role. Arguments left as None
+        are not checked.
+        """
+        step = self.find_step({"id": step_id})
+        signed = step["_signature"]["signed"]
+        problems = []
+        if member is not None and signed["member"] != member:
+            problems.append(f"signed by member {signed['member']}, expected {member}")
+        if application is not None and signed["application"] != application:
+            problems.append(
+                f"signed by application {signed['application']}, expected {application}"
+            )
+        if role is not None and role not in signed["roles"]:
+            problems.append(f"signer does not have role {role}")
+        if problems:
+            raise VerificationError(f"Step {step_id} " + "; ".join(problems))
+        return step
 
     def filter_steps(self, required_values):
         self._require_verified()
@@ -231,7 +332,14 @@ class Record:
                         c.public_bytes(serialization.Encoding.PEM).decode("utf-8")
                     ]
         origins = []
-        self._gather_origins(output, origins)
+        ids = []
+        self._gather_origins(output, origins, ids)
+        duplicates = self._duplicate_ids(ids)
+        if duplicates:
+            raise ValidationError(
+                "Step ids are used more than once, was the same record added twice? "
+                + ", ".join(duplicates)
+            )
         encoded = {
             "ib1:provenance": self.trust_framework,
             "origins": origins,
@@ -241,15 +349,16 @@ class Record:
             encoded["certificates"] = certificates
         return Record(self.trust_framework, encoded)
 
-    def _gather_origins(self, container, origins):
+    def _gather_origins(self, container, origins, ids):
         *data, sig_block = container
         for e in data:
             if not isinstance(e, str):
-                self._gather_origins(e, origins)
+                self._gather_origins(e, origins, ids)
             else:
-                decoded_step = json.loads(base64.urlsafe_b64decode(e))
-                if decoded_step["type"] == "origin":
-                    origins.append(decoded_step["id"])
+                decoded_step = self._decode_step(e)
+                ids.append(decoded_step.get("id"))
+                if decoded_step.get("type") == "origin":
+                    origins.append(decoded_step.get("id"))
 
     def _encode_step(self, step):
         return base64.urlsafe_b64encode(
@@ -283,7 +392,9 @@ class Record:
 
     def _require_signed(self):
         if not self._signed:
-            raise ProvenanceError("Record is not signed, call sign() and use returned object")
+            raise ProvenanceError(
+                "Record is not signed, call sign() and use returned object"
+            )
 
     def _require_verified(self):
         if not (self._signed and (self._verified is not None)):
