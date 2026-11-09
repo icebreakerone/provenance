@@ -1,0 +1,161 @@
+{
+  "description": "Expected values for record.json, verified with root-ca.pem",
+  "trust_framework": "https://registry.core.trust.ib1.org/trust-framework",
+  "signature_data": {
+    "steps": "https://registry.core.trust.ib1.org/trust-framework.%.eyJpZCI6IlYxVkZLV3hYc1hVdGlhRkVJblNGIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNTozMjo1NloiLCJ0eXBlIjoicGVybWlzc2lvbiIsInNjaGVtZSI6Imh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzIiwiYWNjb3VudCI6Iml1UGdBZzRjOHg0ZGlZZmRsNkFETjRVTHkzaXJfQjg4IiwiYWxsb3dzIjp7ImxpY2Vuc2VzIjpbImh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzL2xpY2Vuc2UvZW5lcmd5LWNvbnN1bXB0aW9uLWRhdGEvMjAyNC0xMi0wNSJdLCJwcm9jZXNzZXMiOlsiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMvcHJvY2Vzcy9lbWlzc2lvbnMtY2FsY3VsYXRpb24vMjAyNC0xMi0wNSJdfSwiZXhwaXJlcyI6IjIwMjUtMDktMTZUMTU6MzI6NTZaIn0=.eyJpZCI6IjRjTjZiODVlVDdGNU1DVFR4aGlJIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNTozMjo1NloiLCJ0eXBlIjoib3JpZ2luIiwic2NoZW1lIjoiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMiLCJzb3VyY2VUeXBlIjoiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMvc291cmNlLXR5cGUvTWV0ZXIiLCJvcmlnaW4iOiJodHRwczovL3d3dy5zbWFydGRjYy5jby51ay8iLCJvcmlnaW5MaWNlbnNlIjoiaHR0cHM6Ly9zbWFydGVuZXJneWNvZGVjb21wYW55LmNvLnVrL2RvY3VtZW50cy9zZWMvY29uc29saWRhdGVkLXNlYy8iLCJleHRlcm5hbCI6dHJ1ZSwicGVybWlzc2lvbnMiOlsiVjFWRktXeFhzWFV0aWFGRUluU0YiXSwicGVyc2V1czpzY2hlbWUiOnsibm90ZSI6ImNhZlx1MDBlOSJ9fQ==.eyJpZCI6IjUxSF9LVTlZdzRWRHhMbmFJeC1PIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNTozMjo1NloiLCJ0eXBlIjoidHJhbnNmZXIiLCJzY2hlbWUiOiJodHRwczovL3JlZ2lzdHJ5LmNvcmUudHJ1c3QuaWIxLm9yZy9zY2hlbWUvcGVyc2V1cyIsIm9mIjoiNGNONmI4NWVUN0Y1TUNUVHhoaUkiLCJ0byI6Imh0dHBzOi8vZGlyZWN0b3J5LmNvcmUudHJ1c3QuaWIxLm9yZy9tZW1iZXIvODE1MjQiLCJzdGFuZGFyZCI6Imh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzL3N0YW5kYXJkL2VuZXJneS1jb25zdW1wdGlvbi1kYXRhLzIwMjQtMTItMDUiLCJsaWNlbnNlIjoiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMvbGljZW5zZS9lbmVyZ3ktY29uc3VtcHRpb24tZGF0YS8yMDI0LTEyLTA1Iiwic2VydmljZSI6Imh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL3YxL2NvbnN1bXB0aW9uIiwicGF0aCI6Ii9yZWFkaW5ncyIsInBhcmFtZXRlcnMiOnsibWVhc3VyZSI6ImltcG9ydCIsImZyb20iOiIyMDIzLTEwLTE4IiwidG8iOiIyMDIzLTEwLTE5In0sInBlcm1pc3Npb25zIjpbIlYxVkZLV3hYc1hVdGlhRkVJblNGIl19.%.0.123456.2024-09-16T15:40:00Z.MEYCIQCgdlqkJTZgchWal9Vcm66T3bD9LvvTxt9JnpsGj3TY6QIhAPbPVDtNZgqyvHuUTY_CyhOJuKvpGspJyYOVx5FrdPal.&.&.eyJpZCI6ImxRbzRMVEVYQUc3U01QbFo2dDdhIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNjowMDowMFoiLCJ0eXBlIjoicmVjZWlwdCIsInNjaGVtZSI6Imh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzIiwidHJhbnNmZXIiOiI1MUhfS1U5WXc0VkR4TG5hSXgtTyJ9.eyJpZCI6IlBxN1hrMkxtTjl2UjR0WXcxWnNCIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNjowNTowMFoiLCJ0eXBlIjoicHJvY2VzcyIsInNjaGVtZSI6Imh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzIiwiaW5wdXRzIjpbImxRbzRMVEVYQUc3U01QbFo2dDdhIl0sInByb2Nlc3MiOiJodHRwczovL3JlZ2lzdHJ5LmNvcmUudHJ1c3QuaWIxLm9yZy9zY2hlbWUvcGVyc2V1cy9wcm9jZXNzL2VtaXNzaW9ucy1jYWxjdWxhdGlvbi8yMDI0LTEyLTA1In0=.0.98765.2024-09-16T16:05:12Z",
+    "steps[0]": "https://registry.core.trust.ib1.org/trust-framework.eyJpZCI6IlYxVkZLV3hYc1hVdGlhRkVJblNGIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNTozMjo1NloiLCJ0eXBlIjoicGVybWlzc2lvbiIsInNjaGVtZSI6Imh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzIiwiYWNjb3VudCI6Iml1UGdBZzRjOHg0ZGlZZmRsNkFETjRVTHkzaXJfQjg4IiwiYWxsb3dzIjp7ImxpY2Vuc2VzIjpbImh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzL2xpY2Vuc2UvZW5lcmd5LWNvbnN1bXB0aW9uLWRhdGEvMjAyNC0xMi0wNSJdLCJwcm9jZXNzZXMiOlsiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMvcHJvY2Vzcy9lbWlzc2lvbnMtY2FsY3VsYXRpb24vMjAyNC0xMi0wNSJdfSwiZXhwaXJlcyI6IjIwMjUtMDktMTZUMTU6MzI6NTZaIn0=.eyJpZCI6IjRjTjZiODVlVDdGNU1DVFR4aGlJIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNTozMjo1NloiLCJ0eXBlIjoib3JpZ2luIiwic2NoZW1lIjoiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMiLCJzb3VyY2VUeXBlIjoiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMvc291cmNlLXR5cGUvTWV0ZXIiLCJvcmlnaW4iOiJodHRwczovL3d3dy5zbWFydGRjYy5jby51ay8iLCJvcmlnaW5MaWNlbnNlIjoiaHR0cHM6Ly9zbWFydGVuZXJneWNvZGVjb21wYW55LmNvLnVrL2RvY3VtZW50cy9zZWMvY29uc29saWRhdGVkLXNlYy8iLCJleHRlcm5hbCI6dHJ1ZSwicGVybWlzc2lvbnMiOlsiVjFWRktXeFhzWFV0aWFGRUluU0YiXSwicGVyc2V1czpzY2hlbWUiOnsibm90ZSI6ImNhZlx1MDBlOSJ9fQ==.eyJpZCI6IjUxSF9LVTlZdzRWRHhMbmFJeC1PIiwidGltZXN0YW1wIjoiMjAyNC0wOS0xNlQxNTozMjo1NloiLCJ0eXBlIjoidHJhbnNmZXIiLCJzY2hlbWUiOiJodHRwczovL3JlZ2lzdHJ5LmNvcmUudHJ1c3QuaWIxLm9yZy9zY2hlbWUvcGVyc2V1cyIsIm9mIjoiNGNONmI4NWVUN0Y1TUNUVHhoaUkiLCJ0byI6Imh0dHBzOi8vZGlyZWN0b3J5LmNvcmUudHJ1c3QuaWIxLm9yZy9tZW1iZXIvODE1MjQiLCJzdGFuZGFyZCI6Imh0dHBzOi8vcmVnaXN0cnkuY29yZS50cnVzdC5pYjEub3JnL3NjaGVtZS9wZXJzZXVzL3N0YW5kYXJkL2VuZXJneS1jb25zdW1wdGlvbi1kYXRhLzIwMjQtMTItMDUiLCJsaWNlbnNlIjoiaHR0cHM6Ly9yZWdpc3RyeS5jb3JlLnRydXN0LmliMS5vcmcvc2NoZW1lL3BlcnNldXMvbGljZW5zZS9lbmVyZ3ktY29uc3VtcHRpb24tZGF0YS8yMDI0LTEyLTA1Iiwic2VydmljZSI6Imh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL3YxL2NvbnN1bXB0aW9uIiwicGF0aCI6Ii9yZWFkaW5ncyIsInBhcmFtZXRlcnMiOnsibWVhc3VyZSI6ImltcG9ydCIsImZyb20iOiIyMDIzLTEwLTE4IiwidG8iOiIyMDIzLTEwLTE5In0sInBlcm1pc3Npb25zIjpbIlYxVkZLV3hYc1hVdGlhRkVJblNGIl19.0.123456.2024-09-16T15:40:00Z"
+  },
+  "decoded_steps": [
+    {
+      "id": "V1VFKWxXsXUtiaFEInSF",
+      "timestamp": "2024-09-16T15:32:56Z",
+      "type": "permission",
+      "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+      "account": "iuPgAg4c8x4diYfdl6ADN4ULy3ir_B88",
+      "allows": {
+        "licenses": [
+          "https://registry.core.trust.ib1.org/scheme/perseus/license/energy-consumption-data/2024-12-05"
+        ],
+        "processes": [
+          "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculation/2024-12-05"
+        ]
+      },
+      "expires": "2025-09-16T15:32:56Z",
+      "_signature": {
+        "signed": {
+          "member": "https://directory.core.trust.ib1.org/member/2876152",
+          "name": "Smart Meter Reading Co",
+          "application": "https://directory.core.trust.ib1.org/application/38936455",
+          "roles": [
+            "https://registry.core.trust.ib1.org/scheme/perseus/role/energy-data-provider"
+          ]
+        },
+        "includedBy": [
+          {
+            "member": "https://directory.core.trust.ib1.org/member/81524",
+            "name": "Carbon Accounting Provider",
+            "application": "https://directory.core.trust.ib1.org/application/26241",
+            "roles": [
+              "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "4cN6b85eT7F5MCTTxhiI",
+      "timestamp": "2024-09-16T15:32:56Z",
+      "type": "origin",
+      "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+      "sourceType": "https://registry.core.trust.ib1.org/scheme/perseus/source-type/Meter",
+      "origin": "https://www.smartdcc.co.uk/",
+      "originLicense": "https://smartenergycodecompany.co.uk/documents/sec/consolidated-sec/",
+      "external": true,
+      "permissions": [
+        "V1VFKWxXsXUtiaFEInSF"
+      ],
+      "perseus:scheme": {
+        "note": "café"
+      },
+      "_signature": {
+        "signed": {
+          "member": "https://directory.core.trust.ib1.org/member/2876152",
+          "name": "Smart Meter Reading Co",
+          "application": "https://directory.core.trust.ib1.org/application/38936455",
+          "roles": [
+            "https://registry.core.trust.ib1.org/scheme/perseus/role/energy-data-provider"
+          ]
+        },
+        "includedBy": [
+          {
+            "member": "https://directory.core.trust.ib1.org/member/81524",
+            "name": "Carbon Accounting Provider",
+            "application": "https://directory.core.trust.ib1.org/application/26241",
+            "roles": [
+              "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "51H_KU9Yw4VDxLnaIx-O",
+      "timestamp": "2024-09-16T15:32:56Z",
+      "type": "transfer",
+      "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+      "of": "4cN6b85eT7F5MCTTxhiI",
+      "to": "https://directory.core.trust.ib1.org/member/81524",
+      "standard": "https://registry.core.trust.ib1.org/scheme/perseus/standard/energy-consumption-data/2024-12-05",
+      "license": "https://registry.core.trust.ib1.org/scheme/perseus/license/energy-consumption-data/2024-12-05",
+      "service": "https://api.example.com/v1/consumption",
+      "path": "/readings",
+      "parameters": {
+        "measure": "import",
+        "from": "2023-10-18",
+        "to": "2023-10-19"
+      },
+      "permissions": [
+        "V1VFKWxXsXUtiaFEInSF"
+      ],
+      "_signature": {
+        "signed": {
+          "member": "https://directory.core.trust.ib1.org/member/2876152",
+          "name": "Smart Meter Reading Co",
+          "application": "https://directory.core.trust.ib1.org/application/38936455",
+          "roles": [
+            "https://registry.core.trust.ib1.org/scheme/perseus/role/energy-data-provider"
+          ]
+        },
+        "includedBy": [
+          {
+            "member": "https://directory.core.trust.ib1.org/member/81524",
+            "name": "Carbon Accounting Provider",
+            "application": "https://directory.core.trust.ib1.org/application/26241",
+            "roles": [
+              "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "lQo4LTEXAG7SMPlZ6t7a",
+      "timestamp": "2024-09-16T16:00:00Z",
+      "type": "receipt",
+      "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+      "transfer": "51H_KU9Yw4VDxLnaIx-O",
+      "_signature": {
+        "signed": {
+          "member": "https://directory.core.trust.ib1.org/member/81524",
+          "name": "Carbon Accounting Provider",
+          "application": "https://directory.core.trust.ib1.org/application/26241",
+          "roles": [
+            "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
+          ]
+        },
+        "includedBy": []
+      }
+    },
+    {
+      "id": "Pq7Xk2LmN9vR4tYw1ZsB",
+      "timestamp": "2024-09-16T16:05:00Z",
+      "type": "process",
+      "scheme": "https://registry.core.trust.ib1.org/scheme/perseus",
+      "inputs": [
+        "lQo4LTEXAG7SMPlZ6t7a"
+      ],
+      "process": "https://registry.core.trust.ib1.org/scheme/perseus/process/emissions-calculation/2024-12-05",
+      "_signature": {
+        "signed": {
+          "member": "https://directory.core.trust.ib1.org/member/81524",
+          "name": "Carbon Accounting Provider",
+          "application": "https://directory.core.trust.ib1.org/application/26241",
+          "roles": [
+            "https://registry.core.trust.ib1.org/scheme/perseus/role/carbon-accounting-provider"
+          ]
+        },
+        "includedBy": []
+      }
+    }
+  ]
+}

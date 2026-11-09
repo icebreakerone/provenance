@@ -1,0 +1,21 @@
+{
+  "steps": [
+    [
+      "STEP_A",
+      [
+        0,
+        "1001",
+        "2024-09-16T15:32:56Z",
+        "SIGNATURE_1"
+      ]
+    ],
+    "STEP_B",
+    [
+      0,
+      "2002",
+      "2024-09-16T16:05:12Z",
+      "SIGNATURE_2"
+    ]
+  ],
+  "signature_data": "https://registry.core.trust.ib1.org/trust-framework.%.STEP_A.%.0.1001.2024-09-16T15:32:56Z.SIGNATURE_1.&.&.STEP_B.0.2002.2024-09-16T16:05:12Z"
+}

@@ -7,6 +7,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 import asn1crypto.core as asn1
 
+from .exceptions import CertificateError, CertificateNotFoundError
+
 # ---------------------------------------------------------------------------
 
 OID_IB1_ROLES = x509.ObjectIdentifier("1.3.6.1.4.1.62329.1.1")
@@ -27,7 +29,7 @@ class SigningCertificate:
         )
         uri = san_extension.value.get_values_for_type(x509.UniformResourceIdentifier)
         if len(uri) != 1:
-            raise Exception(
+            raise CertificateError(
                 "Certificate doesn't contain exactly one URI subject alternative name"
             )
         return uri[0]
@@ -97,7 +99,7 @@ class CertificatesProviderSelfContainedRecord(CertificateProviderBase):
     ) -> list:
         certs = certificates_from_record.get(serial)
         if certs is None:
-            raise KeyError("Certificate serial " + serial + " is not present in record")
+            raise CertificateNotFoundError("Certificate serial " + serial + " is not present in record")
         signing_cert, *path_serials = certs
         cert_chain = [signing_cert]
         cert_chain.extend(

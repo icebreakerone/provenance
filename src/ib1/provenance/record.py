@@ -5,6 +5,7 @@ import datetime
 
 from cryptography.hazmat.primitives import serialization
 
+from .exceptions import ProvenanceError, ValidationError, VerificationError
 from .identifier import globally_unique_step_identifier
 
 
@@ -23,9 +24,9 @@ class Record:
     def __init__(self, trust_framework, record=None):
         if record is not None:
             if not isinstance(record.get("steps"), list):
-                raise Exception("Not an encoded Provenance record")
+                raise ValidationError("Not an encoded Provenance record")
             if trust_framework != record["ib1:provenance"]:
-                raise Exception(
+                raise ValidationError(
                     "Unexpected trust framework when creating Record from encoded form"
                 )
         self.trust_framework = trust_framework
@@ -53,7 +54,7 @@ class Record:
             signer_stack,
         )
         if self._record["origins"] != origins:
-            raise Exception("origins property does not match origin steps in record")
+            raise VerificationError("origins property does not match origin steps in record")
         self._verified = steps
 
     def _verify_record_container(
@@ -69,13 +70,13 @@ class Record:
         container_format_version, serial, sign_timestamp, signature = sig_block
         # Check it's an understood format (multiple versions of formats may be included in a single record)
         if container_format_version != CURRENT_CONTAINER_FORMAT_VERSION:
-            raise Exception(
+            raise VerificationError(
                 "Cannot decode container format version: "
                 + str(container_format_version)
             )
         # Serial number must only be a number
         if str(int(serial)) != serial:
-            raise Exception("Bad certificate serial number in record: " + serial)
+            raise VerificationError("Bad certificate serial number in record: " + serial)
         # Check signatures at this level and get signer information
         data_for_signing = self._data_for_signing(
             data, [str(container_format_version), serial, sign_timestamp]
@@ -114,9 +115,9 @@ class Record:
         self._signed = False
         self._verified = None
         if not isinstance(record, Record):
-            raise Exception("Not a Record object")
+            raise TypeError("Not a Record object")
         if self.trust_framework != record.trust_framework:
-            raise Exception("Incompatible trust frameworks in added Record")
+            raise ValidationError("Incompatible trust frameworks in added Record")
         self._additional_records.append(record.encoded())
 
     def add_step(self, step_in):
@@ -125,7 +126,7 @@ class Record:
         step = copy.deepcopy(step_in)
         # Step identifier
         if "id" in step:
-            raise Exception(
+            raise ValidationError(
                 "Step may not contain an id key. Identifiers are allocated automatically and returned by this function."
             )
         id = globally_unique_step_identifier()
@@ -139,7 +140,7 @@ class Record:
         # No keys with _ prefix allowed
         prohibited_keys_present = list(filter(lambda k: k.startswith("_"), step.keys()))
         if prohibited_keys_present:
-            raise Exception(
+            raise ValidationError(
                 "Step may not contain keys beginning with an underscore. Prohibited keys present: "
                 + (", ".join(prohibited_keys_present))
             )
@@ -152,9 +153,11 @@ class Record:
     def find_step(self, required_values):
         steps = self.filter_steps(required_values)
         if len(steps) == 0:
-            raise Exception("No step matches required values")
+            raise ProvenanceError(f"No step matches required values {required_values}")
         if len(steps) > 1:
-            raise Exception("More than one step matches required values")
+            raise ProvenanceError(
+                f"More than one step matches required values {required_values}"
+            )
         return steps[0]
 
     def filter_steps(self, required_values):
@@ -280,11 +283,11 @@ class Record:
 
     def _require_signed(self):
         if not self._signed:
-            raise Exception("Record is not signed, call sign() and use returned object")
+            raise ProvenanceError("Record is not signed, call sign() and use returned object")
 
     def _require_verified(self):
         if not (self._signed and (self._verified is not None)):
-            raise Exception("Record is not verified, call verify() first")
+            raise ProvenanceError("Record is not verified, call verify() first")
 
     def _timestamp_now_iso8601(self):
         return (
