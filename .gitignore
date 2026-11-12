@@ -5,3 +5,4 @@ __pycache__/
 
 certs/
 .mypy_cache/
+.DS_Store
