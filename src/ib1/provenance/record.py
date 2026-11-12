@@ -14,7 +14,9 @@ from . import validation
 
 CURRENT_CONTAINER_FORMAT_VERSION = 0
 
-# The specification does not allow any other top level properties
+# The specification does not allow any other top level properties. They are
+# not signed and are dropped when the record is signed again, so validate()
+# reports them instead of rejecting the record.
 TOP_LEVEL_KEYS = {"ib1:provenance", "origins", "steps", "certificates"}
 
 TIMESTAMP_PATTERN = validation.TIMESTAMP_PATTERN
@@ -37,12 +39,6 @@ class Record:
             if trust_framework != record.get("ib1:provenance"):
                 raise ValidationError(
                     "Unexpected trust framework when creating Record from encoded form"
-                )
-            unknown_keys = sorted(set(record) - TOP_LEVEL_KEYS)
-            if unknown_keys:
-                raise ValidationError(
-                    "Provenance record has unknown top level properties: "
-                    + ", ".join(unknown_keys)
                 )
             if not isinstance(record.get("origins"), list):
                 raise ValidationError("Provenance record origins must be a list")
@@ -235,7 +231,14 @@ class Record:
         reported, without stopping it being used.
         """
         self._require_verified()
-        return validation.record_problems(self._verified)
+        problems = []
+        unknown_keys = sorted(set(self._record) - TOP_LEVEL_KEYS)
+        if unknown_keys:
+            problems.append(
+                "Provenance record has unknown top level properties: "
+                + ", ".join(unknown_keys)
+            )
+        return problems + validation.record_problems(self._verified)
 
     def find_step(self, required_values):
         steps = self.filter_steps(required_values)

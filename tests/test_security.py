@@ -162,11 +162,19 @@ def test_step_that_is_not_a_json_object(
 # --- 1.3 Top level properties -----------------------------------------------
 
 
-def test_unknown_top_level_property(signed):
-    encoded, _ = signed
+def test_unknown_top_level_property(signed, edp, cap, self_contained_provider):
+    # Top level properties are not signed, so the record still verifies and can
+    # be passed on. validate() reports them, and signing again drops them.
+    encoded, ids = signed
     encoded["perseus:extra"] = {"anything": True}
-    with pytest.raises(ValidationError, match="perseus:extra"):
-        Record(TRUST_FRAMEWORK_URL, encoded)
+    record = verify(encoded, self_contained_provider)
+    assert record.validate() == [
+        "Provenance record has unknown top level properties: perseus:extra"
+    ]
+    record.add_step({"type": "receipt", "transfer": ids["transfer"]})
+    resigned = record.sign(cap.signer(self_contained_provider)).encoded()
+    assert "perseus:extra" not in resigned
+    assert verify(resigned, self_contained_provider).validate() == []
 
 
 def test_origins_must_be_a_list(signed):

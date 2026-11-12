@@ -12,7 +12,7 @@ This release aligns the library with the [Provenance Records 1.0 specification](
   - the signature element must have 4 items: an integer version, a serial number matching `^(0|[1-9][0-9]*)$`, a timestamp in `YYYY-MM-DDTHH:MM:SSZ` form and a string signature
   - step IDs must be unique within the record
   - every issuer certificate listed for a signing certificate must be present in the record
-- Loading a record with `Record(trust_framework, record)` rejects top-level properties other than `ib1:provenance`, `origins`, `steps` and `certificates`. The specification says Schemes must not add top-level properties. `origins` must be a list and `certificates` a map.
+- Loading a record with `Record(trust_framework, record)` checks that `origins` is a list and `certificates` is a map.
 - `Record.add_step()` checks each new step, see "Step checks" below.
 - `Record.sign()` checks the record before calling the signer, see "Step checks" below.
 - Errors are raised as the library's own exception classes instead of `Exception`. They all subclass `Exception`, so `except Exception` still catches them. `add_record()` with something other than a `Record` raises `TypeError`.
@@ -30,7 +30,7 @@ These checks apply to new steps only. `verify()` does not apply them, so records
   - step IDs are used more than once
   - a new step refers to a step that is not in the record, or to the wrong type of step. `of` must refer to an origin, process or receipt step, `transfer` to a transfer step, `inputs` to origin, receipt or process steps, and `permissions` to permission steps.
 - Steps in included records are not checked when signing, because other participants signed them.
-- `Record.validate()` returns a list of these problems for a verified record, without raising. An empty list means none were found.
+- `Record.validate()` returns a list of these problems for a verified record, without raising. An empty list means none were found. It also reports top-level properties other than `ib1:provenance`, `origins`, `steps` and `certificates`, which the specification does not allow. These are not rejected when loading, because they are not signed: anyone could add one in transit, and rejecting the record would stop a correctly signed record being used. `sign()` leaves them out of the new record.
 
 Callers which build timestamps with `isoformat()[0:-7] + "Z"` produce invalid values for times with a time zone or without microseconds, and will need fixing before upgrading. See [provenance-service#2](https://github.com/icebreakerone/provenance-service/issues/2) and [perseus-demo-energy#150](https://github.com/icebreakerone/perseus-demo-energy/issues/150).
 
