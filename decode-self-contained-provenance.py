@@ -8,7 +8,8 @@ from ib1.provenance.certificates import CertificatesProviderSelfContainedRecord
 if __name__ == "__main__":
     if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
         raise Exception("First command line argument must be the filename of a PEM encoded root signing CA certificate.")
-    root_certificate = sys.argv[1]
+    with open(sys.argv[1], "rb") as f:
+        root_certificate = f.read()
     certificate_provider = CertificatesProviderSelfContainedRecord(root_certificate)
 
     record_encoded = json.loads(sys.stdin.read())
