@@ -8,7 +8,7 @@ packages = [{include = "ib1", from = "src"}]
 
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 cryptography = "^43.0.1"
 asn1crypto = "^1.5.1"
 boto3 = { version = "^1.35.0", optional = true }
